@@ -1,5 +1,8 @@
 # :spades:  blackjack
+
 https://jacquelynmarcella.github.io/blackjack/
+
+https://github.com/jacquelynmarcella/blackjack.git
 
 A JavaScript based Blackjack game. Beat the dealer by getting as close to 21 without going over.
 
