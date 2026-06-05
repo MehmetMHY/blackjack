@@ -1,82 +1,92 @@
-// This file contains logic for what happens after the round is determined to be over
+// Settlement: compares each player hand to the dealer, applies payouts, and
+// composes the outcome message. Stakes were already deducted from the bankroll
+// when bets were placed, so payouts here return stake + winnings.
+//
+//   blackjack (natural) ... pays 3:2  -> bet * 2.5 returned
+//   regular win .......... pays 1:1  -> bet * 2 returned
+//   push ................. stake returned -> bet * 1 returned
+//   loss ................. nothing returned
+//   insurance ........... pays 2:1  -> insuranceBet * 3 returned
 
-function gameOver() {
-	isGameOver = true;
-	setTimeout(function(){
-		flipHiddenCard();
-	}, 750);
-	disableButton(standButton);
-	disableButton(hitButton);
-	disableButton(splitButton);
-	disableButton(doubleDownButton);
-	if (dealerHandTotal === 21) {
-		if (playerHandTotal === 21 || playerSplitHandTotal === 21) {
-			gameWinner = "tie";
-		} else {
-			gameWinner = "dealer";
-		}
-	} else if (dealerHandTotal > 21) {
-		if (playerHandTotal <= 21) {
-			gameWinner = "player";
-		} else if (splitGame === true && playerSplitHandTotal <= 21) {
-			gameWinner = "player";
-		} else {
-			gameWinner = "tie";
-		}
-	} else if (dealerHandTotal < 21) {
-		if (playerHandTotal === 21  || playerSplitHandTotal === 21) {
-			gameWinner = "player";
-		} else if (playerHandTotal < 21 && playerHandTotal > dealerHandTotal) {
-			gameWinner = "player";
-		} else if (playerSplitHandTotal < 21 && playerSplitHandTotal > dealerHandTotal) {
-			gameWinner = "player";
-		} else if (playerSplitHandTotal < 21 && playerSplitHandTotal === dealerHandTotal ||
-			playerHandTotal < 21 && playerHandTotal === dealerHandTotal) {
-			gameWinner = "tie";
-		} else {
-			gameWinner = "dealer";
-		}
-	}
-	updateChipBalance();
-	setTimeout(announceWinner, 2500); // Slight delay to give time to see the final cards play out
-} 
+function settleRound() {
+	game.phase = "settle";
+	game.dealer.hideHole = false;
 
-function updateChipBalance() {
-	if (gameWinner === "player") {
-		// Blackjack is 3:2 payout (and cannot occur on a split deck):
-		if (splitGame === false && playerHasAce === true && playerHandTotal === 21 && playerHand.length === 2) {
-			currentChipBalance += currentWager*(3/2) + currentWager;
-		// Otherwise it's a 1:1 payout:
+	var dealerTotal = handValue(game.dealer.cards).total;
+	var dealerBJ = isBlackjack(game.dealer.cards);
+	var dealerBust = dealerTotal > 21;
+
+	for (var i = 0; i < game.hands.length; i++) {
+		var h = game.hands[i];
+		var total = handValue(h.cards).total;
+		var playerBJ = isBlackjack(h.cards) && !h.fromSplit;
+		var result, payout = 0;
+
+		if (total > 21) {
+			result = "lose";
+		} else if (playerBJ && !dealerBJ) {
+			result = "blackjack";
+			payout = h.bet * 2.5;
+		} else if (dealerBJ && !playerBJ) {
+			result = "lose";
+		} else if (dealerBJ && playerBJ) {
+			result = "push";
+			payout = h.bet;
+		} else if (dealerBust || total > dealerTotal) {
+			result = "win";
+			payout = h.bet * 2;
+		} else if (total < dealerTotal) {
+			result = "lose";
 		} else {
-			currentChipBalance += currentWager*2;
+			result = "push";
+			payout = h.bet;
 		}
-	// If you tie, get just original wager back (no win or loss)
-	} else if (gameWinner === "tie") {
-		currentChipBalance += currentWager;		
+
+		h.result = result;
+		game.bankroll += payout;
 	}
-	// Note: if dealer wins, nothing happens to player chip balance as their wager was already removed from it
-	updateVisibleChipBalances();
+
+	// Insurance pays out only when the dealer has a natural blackjack.
+	if (game.insuranceBet > 0 && dealerBJ) {
+		game.bankroll += game.insuranceBet * 3;
+	}
+
+	game.message = buildOutcomeMessage(dealerBJ);
+
+	// Round over: ready the next bet and return to the betting phase.
+	game.phase = "betting";
+	game.awaitingInsurance = false;
+	game.bet = Math.min(game.lastBet, game.bankroll);
+	saveBankroll();
+	render();
 }
 
-function announceWinner() {
-	updateVisibleHandTotals();
-	currentWager = 0;
-	updateVisibleChipBalances();
-	$("#game-board").hide();
-	enlargeDeck(playerSplitGameBoard, playerSplitHandTotalDisplay);
-	enlargeDeck(playerGameBoard, playerHandTotalDisplay);
-
-	// Move betting options from welcome screen to game over screen to play again
-	$("#wager-options").appendTo($("#game-over")); 
-	$(playAgainButton).appendTo($("#wager-options")); // to move to bottom of container
-	$(startButton).hide(); 
-	$("#game-over").show("drop", 500);
-
-	if (gameWinner === "player") {
-		$("#game-outcome").text("You won");
-	} else if (gameWinner === "dealer") {
-		$("#game-outcome").text("Dealer won");
-	} else if (gameWinner === "tie") {
-		$("#game-outcome").text("You tied");
+function buildOutcomeMessage(dealerBJ) {
+	if (game.hands.length === 1) {
+		var h = game.hands[0];
+		var total = handValue(h.cards).total;
+		switch (h.result) {
+			case "blackjack": return "Blackjack! You win " + Math.floor(h.bet * 1.5);
+			case "win":       return "You win " + h.bet;
+			case "push":      return "Push — bet returned";
+			default:
+				if (total > 21) { return "Bust — dealer wins"; }
+				if (dealerBJ)   { return "Dealer blackjack — you lose"; }
+				return "Dealer wins";
+		}
 	}
+
+	// Split round: summarise across all hands.
+	var wins = 0, losses = 0, pushes = 0;
+	for (var i = 0; i < game.hands.length; i++) {
+		var r = game.hands[i].result;
+		if (r === "win" || r === "blackjack") { wins++; }
+		else if (r === "push") { pushes++; }
+		else { losses++; }
+	}
+	var parts = [];
+	if (wins)   { parts.push("won " + wins); }
+	if (pushes) { parts.push("pushed " + pushes); }
+	if (losses) { parts.push("lost " + losses); }
+	return "Hands: " + parts.join(", ");
 }

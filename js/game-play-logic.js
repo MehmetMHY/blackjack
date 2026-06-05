@@ -1,158 +1,291 @@
-// This file contains the main logic utilized during active gameplay, before the game is declared over
+// Core game engine: a small state machine that drives a round of blackjack.
+//
+// Phases:
+//   "betting" -> player builds a wager and presses Deal
+//   "player"  -> player acts on each hand (hit/stand/double/split)
+//   "dealer"  -> dealer reveals the hole card and draws to 17
+//   "settle"  -> outcomes resolved, payouts applied (transitions back to betting)
+//
+// Rendering is reactive: engine mutations call render() (defined in main.js),
+// which rebuilds the board from `game`.
 
-function dealCard(hand, location) {
-	var cardDrawn = cardsInDeck.pop();
-	hand.push(cardDrawn);
-	var index = hand.length - 1;
+var STARTING_BANKROLL = 2000;
+var NUM_DECKS = 6;
+var RESHUFFLE_AT = 30; // reshuffle the shoe when it drops below this many cards
+var MAX_HANDS = 4;     // a pair can be split up to this many hands
 
-	// Create card image for card, hide initially so it doesn't impact transition
-	var cardImage = $("<img>").attr("class", "card").attr("src", "img/" + hand[index].src).hide();
-	cardImage.attr("id", currentTurn + "-card-" + index);
+var cardUid = 0;
 
-	// To create stacked card effect
-	if (index === 0) {
-		cardImage.appendTo($(location)).show();
-	} else if (index > 0) {
-		cardImage.appendTo($(location)).offset({left: -60}).css("margin-right", -60).show();	
-	} 
-	if (hand[index].name === "ace" && currentTurn != "dealer") {
-		playerHasAce = true;
-	}
-	// Note: tried to dry this out by putting totals as a param but couldn't get it working yet
-	if (currentTurn === "player") {
-		playerHandTotal += hand[index].value;
-	} else if (currentTurn === "playerSplit") {
-		playerSplitHandTotal += hand[index].value;
-	} else if (currentTurn === "dealer") {
-		dealerHandTotal += hand[index].value;
-	}	
-	// Second card only for dealer should show face down
-	if (dealerHand.length === 2 && currentTurn === "dealer") {
-		cardImage.attr("src", "img/card_back.png");
-	}
-	updateVisibleHandTotals();
-	evaluateGameStatus();
+var game = {
+	shoe: [],
+	dealer: { cards: [], hideHole: true },
+	hands: [],            // array of player hands (more than one after a split)
+	activeHand: 0,
+	bankroll: STARTING_BANKROLL,
+	bet: 0,               // pending wager while in the betting phase
+	lastBet: 0,           // remembered for quick re-bet
+	insuranceBet: 0,
+	awaitingInsurance: false,
+	phase: "betting",
+	message: ""
+};
+
+function currentHand() {
+	return game.hands[game.activeHand];
 }
 
-function evaluateGameStatus() {
-	// Player can only split or double down after first 2 cards drawn
-	if (playerHand.length === 3 || dealerStatus === "hit") {
-		disableButton(doubleDownButton);
-		disableButton(splitButton);
+function newHand(card, bet, fromSplit) {
+	return {
+		cards: card ? [card] : [],
+		bet: bet,
+		status: "playing",   // "playing" | "stand" | "bust" | "bj"
+		doubled: false,
+		fromSplit: !!fromSplit,
+		splitAces: false,
+		result: null
+	};
+}
+
+// Draw a card from the shoe, tagging it with a unique id so the renderer can
+// tell which cards are new (for deal/flip animations).
+function draw() {
+	var card = game.shoe.pop();
+	card.uid = ++cardUid;
+	return card;
+}
+
+// --- Round lifecycle --------------------------------------------------------
+
+function startRound() {
+	if (game.phase !== "betting") { return; }
+	if (game.bet <= 0) { toast("Place a bet to play"); return; }
+	if (game.bet > game.bankroll) { toast("Not enough chips for that bet"); return; }
+
+	if (game.shoe.length < RESHUFFLE_AT) {
+		game.shoe = shuffle(buildShoe(NUM_DECKS));
 	}
-	if (currentTurn != "dealer") {
-		if (playerHasAce === true) {
-			if (currentTurn === "player") {  // Dry out by having params in here
-				reviewAcesValue(playerHand, playerHandTotal);
-			} else if (currentTurn === "playerSplit") {
-				reviewAcesValue(playerSplitHand, playerSplitHandTotal);
-			}	
+
+	game.lastBet = game.bet;
+	game.bankroll -= game.bet;
+	game.dealer = { cards: [], hideHole: true };
+	game.hands = [ newHand(null, game.bet, false) ];
+	game.activeHand = 0;
+	game.insuranceBet = 0;
+	game.awaitingInsurance = false;
+	game.message = "";
+	game.phase = "player";
+
+	resetRenderState();
+
+	// Standard deal order: player, dealer, player, dealer (hole).
+	game.hands[0].cards.push(draw());
+	game.dealer.cards.push(draw());
+	game.hands[0].cards.push(draw());
+	game.dealer.cards.push(draw());
+
+	render();
+	setTimeout(afterDeal, 700);
+}
+
+// After the opening deal, handle insurance and dealer/player naturals.
+function afterDeal() {
+	var up = game.dealer.cards[0];
+
+	if (up.rank === "Ace") {
+		// Offer insurance, then peek for dealer blackjack.
+		game.awaitingInsurance = true;
+		render();
+		return;
+	}
+
+	if (up.value === 10 && isBlackjack(game.dealer.cards)) {
+		// Dealer peeks on a ten-value up card; blackjack ends the round now.
+		settleRound();
+		return;
+	}
+
+	proceedAfterPeek();
+}
+
+function resolveInsurance(takeInsurance) {
+	game.awaitingInsurance = false;
+
+	if (takeInsurance) {
+		var cost = Math.floor(game.lastBet / 2);
+		if (cost > game.bankroll) {
+			toast("Not enough chips for insurance");
 		} else {
-			isPlayerDone();
-		}
-	}		
-	if (currentTurn === "dealer" && dealerStatus === "hit") {
-		dealerPlay();
-	}
-}
-
-
-// The purpose of this function is to detect when a turn should be shifted without the player
-// needing to click "stand". This is also an important step for determining what the next move
-// is if there is a split deck. 
-function isPlayerDone() {
-	if (splitGame === false && playerHandTotal >= 21) {
-		gameOver();
-	} else if (splitGame === true) {
-		if (currentTurn === "player") {
-			if (playerHandTotal === 21) {
-				gameOver();
-			// If it's a split game, we can't just game over on the first hand if the player goes over
-			} else if (playerHandTotal > 21)
-				changeHand(playerStatus); 
-		} else if (currentTurn === "playerSplit") {
-			if (playerSplitHandTotal === 21) {
-				gameOver();
-			} else if (playerSplitHandTotal > 21) {
-				// If the player was under 21 in their first game, the dealer should play before gameover
-				if (playerHandTotal < 21) { 
-					changeHand(playerSplitStatus);
-				} else {
-					gameOver();
-				}
-			}
+			game.bankroll -= cost;
+			game.insuranceBet = cost;
 		}
 	}
-}
 
-function changeHand(currentDeckStatus) {
-	currentDeckStatus = "stand";
-	if (currentTurn === "player") {		
-		if (splitGame === true) {
-			currentTurn = "playerSplit";
-			// Scale down the player deck as we change turns, but only on split hand
-			scaleDownDeck(playerGameBoard, playerHandTotalDisplay);
-			enlargeDeck(playerSplitGameBoard, playerSplitHandTotalDisplay);
-		} else if (splitGame === false) {
-			currentTurn = "dealer";
-			dealerStatus = "hit";
-		}
-	} else if (currentTurn === "playerSplit") {
-		currentTurn = "dealer";
-		dealerStatus = "hit";
+	if (isBlackjack(game.dealer.cards)) {
+		settleRound();
+		return;
 	}
-	evaluateGameStatus(); 
+
+	proceedAfterPeek();
 }
 
-function reviewAcesValue(hand, total) {	
+function proceedAfterPeek() {
+	// Dealer has no blackjack here. A player natural wins immediately.
+	if (isBlackjack(game.hands[0].cards)) {
+		game.hands[0].status = "bj";
+		settleRound();
+		return;
+	}
+	game.phase = "player";
+	render();
+}
+
+// --- Player actions ---------------------------------------------------------
+
+function hit() {
+	if (game.phase !== "player" || game.awaitingInsurance) { return; }
+	var h = currentHand();
+	if (h.status !== "playing") { return; }
+
+	h.cards.push(draw());
+	var total = handValue(h.cards).total;
+	render();
+
 	if (total > 21) {
-		// If they have exactly 2 aces in the first draw, prompt them to choose to split or not
-		if (hand.length === 2) {  
-			enableButton(splitButton, split);
-			$("#two-aces-prompt").modal("open");
-		// Otherwise, just reduce the aces value so they are no longer over 21
-		} else if (hand.length > 2) {
-			reduceAcesValue(hand);
-			isPlayerDone();
+		h.status = "bust";
+		setTimeout(advanceHand, 650);
+	} else if (total === 21) {
+		h.status = "stand";
+		setTimeout(advanceHand, 650);
+	}
+}
+
+function stand() {
+	if (game.phase !== "player" || game.awaitingInsurance) { return; }
+	var h = currentHand();
+	if (h.status !== "playing") { return; }
+	h.status = "stand";
+	advanceHand();
+}
+
+function canDouble(h) {
+	return !!h && game.phase === "player" && !game.awaitingInsurance &&
+		h.status === "playing" && h.cards.length === 2 &&
+		game.bankroll >= h.bet && !h.splitAces;
+}
+
+function double() {
+	var h = currentHand();
+	if (!canDouble(h)) { return; }
+
+	game.bankroll -= h.bet;
+	h.bet *= 2;
+	h.doubled = true;
+	h.cards.push(draw());
+	h.status = handValue(h.cards).total > 21 ? "bust" : "stand";
+	render();
+	setTimeout(advanceHand, 700);
+}
+
+function canSplit(h) {
+	return !!h && game.phase === "player" && !game.awaitingInsurance &&
+		h.status === "playing" && h.cards.length === 2 &&
+		h.cards[0].value === h.cards[1].value &&
+		game.hands.length < MAX_HANDS && game.bankroll >= h.bet && !h.splitAces;
+}
+
+function split() {
+	var h = currentHand();
+	if (!canSplit(h)) { return; }
+
+	game.bankroll -= h.bet;
+	var movedCard = h.cards.pop();
+	var sibling = newHand(movedCard, h.bet, true);
+	h.fromSplit = true;
+
+	var splittingAces = h.cards[0].rank === "Ace";
+	if (splittingAces) {
+		h.splitAces = true;
+		sibling.splitAces = true;
+	}
+
+	// Insert the new hand directly after the current one.
+	game.hands.splice(game.activeHand + 1, 0, sibling);
+
+	// Deal one card to the current hand now; the sibling is dealt to when active.
+	h.cards.push(draw());
+	render();
+
+	if (h.splitAces) {
+		// Split aces receive one card each and then stand automatically.
+		h.status = "stand";
+		setTimeout(advanceHand, 600);
+	} else if (handValue(h.cards).total === 21) {
+		h.status = "stand";
+		setTimeout(advanceHand, 600);
+	}
+}
+
+// Move to the next hand still in play; deal its second card if it was just split.
+function advanceHand() {
+	var next = -1;
+	for (var i = game.activeHand + 1; i < game.hands.length; i++) {
+		if (game.hands[i].status === "playing") { next = i; break; }
+	}
+
+	if (next === -1) {
+		dealerTurn();
+		return;
+	}
+
+	game.activeHand = next;
+	var h = game.hands[next];
+
+	if (h.cards.length === 1) {
+		// Freshly split hand needs its second card.
+		h.cards.push(draw());
+		render();
+		if (h.splitAces) {
+			h.status = "stand";
+			setTimeout(advanceHand, 500);
+			return;
+		}
+		if (handValue(h.cards).total === 21) {
+			h.status = "stand";
+			setTimeout(advanceHand, 500);
+			return;
 		}
 	} else {
-		isPlayerDone();
+		render();
 	}
 }
 
-function reduceAcesValue(deck) {
-	for (var i = 0; i < deck.length; i++) {  
-		if (deck[i].name === "ace" && deck[i].value === 11) { // Only focusing on aces that haven't been changed from 11 to 1 already
-			deck[i].value = 1;
-			if (currentTurn === "player") {
-				playerHandTotal -= 10;
-			} else if (currentTurn === "playerSplit") {
-				playerSplitHandTotal -= 10;
-			}
-			updateVisibleHandTotals();
-			Materialize.toast("Your ace value changed from 11 to 1", 1500);
-		}	
+// --- Dealer turn ------------------------------------------------------------
+
+function dealerTurn() {
+	game.phase = "dealer";
+	game.dealer.hideHole = false;
+	render();
+
+	// If every player hand busted, the dealer needn't draw.
+	var anyAlive = false;
+	for (var i = 0; i < game.hands.length; i++) {
+		if (handValue(game.hands[i].cards).total <= 21) { anyAlive = true; break; }
 	}
+	if (!anyAlive) {
+		setTimeout(settleRound, 800);
+		return;
+	}
+
+	setTimeout(dealerStep, 800);
 }
 
-function dealerPlay() {
-	flipHiddenCard();
-	disableButton(standButton);
-	disableButton(hitButton);
-	disableButton(splitButton);
-	// The below logic is based on standard blackjack rules
-	if (dealerHandTotal < 17) {
-		setTimeout(function(){
-			dealCard(dealerHand, dealerGameBoard);
-		}, 1000);
-	} else if (dealerHandTotal >= 21) {
-		setTimeout(function(){
-			gameOver();
-		}, 1100);
-	} else if (dealerHandTotal >= 17) {
-		setTimeout(function(){
-			dealerStatus = "stand";
-			gameOver();
-		}, 1100);
+function dealerStep() {
+	// Dealer stands on all 17s (including soft 17).
+	if (handValue(game.dealer.cards).total < 17) {
+		game.dealer.cards.push(draw());
+		render();
+		setTimeout(dealerStep, 800);
+	} else {
+		setTimeout(settleRound, 500);
 	}
 }

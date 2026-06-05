@@ -1,153 +1,263 @@
-// Starting game board values
-var cardsInDeck;
+// Rendering, DOM wiring, persistence, and bootstrap.
+// The renderer rebuilds the board from `game` on every change. Card elements
+// are recreated each render, but animation classes are gated by `seen` /
+// `revealed` so a card only animates on its first appearance / first reveal.
 
-$( document ).ready(function() {
-  getCards();
-  cardsInDeck = cards;
-  updateVisibleChipBalances();
-});
+var BANKROLL_KEY = "blackjackBankroll";
 
-var currentTurn = "player";
-var currentWager = 0;
-var currentChipBalance = localStorage.getItem('blackjackChips') || 500;
-var gameWinner = "none"; // To be declared at end of game
-var isGameOver = false;
+var seen = {};      // card uid -> has been rendered at least once
+var revealed = {};  // card uid -> has been shown face up at least once
 
-// Dealer hand and starting totals
-var dealerHand = [];
-var dealerHandTotal = 0;
-var dealerGameBoard = $("#dealer");
-var dealerStatus = "start"; // Possible statuses are start (initial gameplay), stand, hit
+var dom = {};
 
-// Player hand and starting totals
-var playerHand = [];
-var playerHandTotal = 0;
-var playerGameBoard = $("#user-hand");
-var playerHandTotalDisplay = $(".hand-total");
-var playerStatus = "start";  // Possible statuses are start (initial gameplay), stand, hit
-
-// Because aces can equal 1 or 11, need to quickly know if player has aces so we can
-// adjust value from 11 to 1 if they go over 21 (default value is 11)
-var playerHasAce = false;  
-
-// Player split game variables only used if the player splits their hand
-var splitGame = false; // default value is false, must be turned true
-var playerSplitHand = [];
-var playerSplitHandTotal = 0;
-var playerSplitGameBoard = $("#user-split-hand");
-var playerSplitHandTotalDisplay = $(".split-hand-total");
-var playerSplitStatus;
-
-// Buttons pulled from DOM
-var startButton = $("#start-game-button");
-var doubleDownButton = $("#double-down-button");
-var hitButton = $("#hit-button");
-var standButton = $("#stand-button");
-var splitButton = $(".split-button");
-var playAgainButton = $(".new-game-button"); 
-
-// Deactivates a button (both event listener and appearance)
-function disableButton(buttonName) {
-	$(buttonName).off();
-	$(buttonName).addClass("disabled-button");
+function resetRenderState() {
+	seen = {};
+	revealed = {};
 }
 
-// Activates a button (both event listener and appearance)
-function enableButton(buttonName, event) {
-	$(buttonName).click(event);
-	$(buttonName).removeClass("disabled-button");
+function saveBankroll() {
+	try { localStorage.setItem(BANKROLL_KEY, String(game.bankroll)); } catch (e) {}
 }
 
-// Update chip totals displayed to user throughout the game
-function updateVisibleChipBalances() {
-	$(".current-wager").text(currentWager);
-	$(".current-chip-balance").text(currentChipBalance);
-	localStorage.setItem('blackjackChips', currentChipBalance);
+function loadBankroll() {
+	var stored = parseInt(localStorage.getItem(BANKROLL_KEY), 10);
+	game.bankroll = isNaN(stored) ? STARTING_BANKROLL : stored;
 }
 
-// Update card hand totals displayed to user throughout the game
-function updateVisibleHandTotals() {
-	$(playerHandTotalDisplay).text(playerHandTotal);
-	$(playerSplitHandTotalDisplay).text(playerSplitHandTotal);
+// --- Card elements ----------------------------------------------------------
 
-	// If the dealer has not played yet or game is not over, only show value of 1st card
-	// as the player is still making their initial moves
-	if (dealerHand.length === 2 && isGameOver === false && dealerStatus === "start") {
-		$(".dealer-hand-total").text(dealerHandTotal - dealerHand[1].value);
+function cardEl(card, faceDown) {
+	var img = document.createElement("img");
+	img.className = "card";
+	var isNew = !seen[card.uid];
+
+	if (faceDown) {
+		img.src = "img/card_back.png";
 	} else {
-		$(".dealer-hand-total").text(dealerHandTotal);
+		img.src = "img/" + card.src;
+		if (seen[card.uid] && !revealed[card.uid]) {
+			// Previously dealt face down, now revealed: flip it.
+			img.classList.add("flip");
+		}
+		revealed[card.uid] = true;
 	}
 
+	if (isNew) { img.classList.add("dealing"); }
+	seen[card.uid] = true;
+	return img;
 }
 
-// Called when player clicks on a chip
-function selectWager(amount){
-	currentWager = amount;
-	updateVisibleChipBalances();
+function badge(text, cls) {
+	var span = document.createElement("span");
+	span.className = "badge" + (cls ? " " + cls : "");
+	span.textContent = text;
+	return span;
 }
 
-// 	ANIMATIONS/INTERACTIVITY:
-function flipHiddenCard() {
-	// If it's just the initial round, first we need to flip/reveal the hidden dealer card when this is called
-	if (dealerHand.length === 2) {
-		$("#dealer-card-1").addClass("flipped");
-		setTimeout(function(){
-			$("#dealer-card-1").attr("src", "img/" + dealerHand[1].src);
-			updateVisibleHandTotals();
-		}, 250);	
-	} 
+// --- Render -----------------------------------------------------------------
+
+function render() {
+	renderDealer();
+	renderPlayerHands();
+	renderHud();
+	renderControls();
+	dom.message.textContent = game.message || "";
+	dom.message.classList.toggle("show", !!game.message);
 }
 
-// Used in split game mode, shrinks the inactive deck and totals
-function scaleDownDeck(deck, totalDisplay) {
-	$(totalDisplay).addClass("splithand-scaledown");
-	$(deck).addClass("splithand-scaledown");
+function renderDealer() {
+	dom.dealerCards.innerHTML = "";
+	game.dealer.cards.forEach(function (card, i) {
+		var faceDown = game.dealer.hideHole && i === 1;
+		dom.dealerCards.appendChild(cardEl(card, faceDown));
+	});
+
+	var text = "";
+	if (game.dealer.cards.length) {
+		if (game.dealer.hideHole) {
+			text = String(handValue([game.dealer.cards[0]]).total);
+		} else {
+			text = String(handValue(game.dealer.cards).total);
+		}
+	}
+	dom.dealerTotal.textContent = text;
+	dom.dealerTotal.style.visibility = text ? "visible" : "hidden";
 }
 
-// Used in split game mode, enlarges the deck and totals when turn active or when
-// dome with gameplay
-function enlargeDeck(deck, totalDisplay) {
-	$(totalDisplay).removeClass("splithand-scaledown");
-	$(deck).removeClass("splithand-scaledown");
+function renderPlayerHands() {
+	dom.playerHands.innerHTML = "";
+
+	if (!game.hands.length) { return; }
+
+	game.hands.forEach(function (h, idx) {
+		var wrap = document.createElement("div");
+		var isActive = game.phase === "player" && idx === game.activeHand && !game.awaitingInsurance;
+		wrap.className = "hand" + (isActive ? " active" : "");
+
+		var cards = document.createElement("div");
+		cards.className = "cards";
+		h.cards.forEach(function (c) { cards.appendChild(cardEl(c, false)); });
+		wrap.appendChild(cards);
+
+		var info = document.createElement("div");
+		info.className = "hand-info";
+
+		var v = handValue(h.cards);
+		var label, cls = "";
+		if (isBlackjack(h.cards) && !h.fromSplit) { label = "BJ"; cls = "win"; }
+		else if (v.total > 21) { label = "BUST"; cls = "bust"; }
+		else { label = String(v.total); }
+		info.appendChild(badge(label, cls));
+
+		if (h.bet) {
+			var bet = document.createElement("span");
+			bet.className = "hand-bet";
+			bet.textContent = "$" + h.bet;
+			info.appendChild(bet);
+		}
+
+		if (h.result) {
+			var res = document.createElement("span");
+			res.className = "result " + h.result;
+			res.textContent = resultLabel(h.result);
+			info.appendChild(res);
+		}
+
+		wrap.appendChild(info);
+		dom.playerHands.appendChild(wrap);
+	});
 }
 
-// Toggling rules from main nav gives an animation effect
-$(".rules-nav").click(function(){
-	$("#rules").toggle("blind", 500);
+function resultLabel(result) {
+	switch (result) {
+		case "blackjack": return "BLACKJACK";
+		case "win":       return "WIN";
+		case "push":      return "PUSH";
+		default:          return "LOSE";
+	}
+}
+
+function renderHud() {
+	dom.bankroll.textContent = "$" + game.bankroll;
+	dom.betAmount.textContent = game.bet ? "$" + game.bet : "";
+	dom.betCircle.classList.toggle("empty", !game.bet);
+}
+
+function renderControls() {
+	var betting = game.phase === "betting";
+	var playerTurn = game.phase === "player" && !game.awaitingInsurance;
+
+	dom.betControls.style.display = betting && !game.awaitingInsurance ? "" : "none";
+	dom.actionControls.style.display = playerTurn ? "" : "none";
+	dom.insuranceControls.style.display = game.awaitingInsurance ? "" : "none";
+
+	var broke = betting && game.bankroll <= 0 && game.bet <= 0;
+	dom.resetControls.style.display = broke ? "" : "none";
+
+	if (betting) {
+		dom.dealButton.disabled = game.bet <= 0 || game.bet > game.bankroll;
+		dom.clearButton.disabled = game.bet <= 0;
+	}
+
+	if (playerTurn) {
+		var h = currentHand();
+		var canAct = !!h && h.status === "playing";
+		dom.hitButton.disabled = !canAct;
+		dom.standButton.disabled = !canAct;
+		dom.doubleButton.disabled = !canDouble(h);
+		dom.splitButton.disabled = !canSplit(h);
+	}
+
+	if (game.awaitingInsurance) {
+		dom.insuranceCost.textContent = "$" + Math.floor(game.lastBet / 2);
+	}
+}
+
+// --- Toast ------------------------------------------------------------------
+
+var toastTimer = null;
+function toast(msg) {
+	dom.toast.textContent = msg;
+	dom.toast.classList.add("show");
+	clearTimeout(toastTimer);
+	toastTimer = setTimeout(function () {
+		dom.toast.classList.remove("show");
+	}, 1600);
+}
+
+// --- Bootstrap --------------------------------------------------------------
+
+function cacheDom() {
+	dom.dealerCards = document.getElementById("dealer-cards");
+	dom.dealerTotal = document.getElementById("dealer-total");
+	dom.playerHands = document.getElementById("player-hands");
+	dom.message = document.getElementById("message");
+	dom.bankroll = document.getElementById("bankroll");
+	dom.betAmount = document.getElementById("bet-amount");
+	dom.betCircle = document.getElementById("bet-circle");
+	dom.betControls = document.getElementById("bet-controls");
+	dom.actionControls = document.getElementById("action-controls");
+	dom.insuranceControls = document.getElementById("insurance-controls");
+	dom.insuranceCost = document.getElementById("insurance-cost");
+	dom.resetControls = document.getElementById("reset-controls");
+	dom.toast = document.getElementById("toast");
+
+	dom.dealButton = document.getElementById("deal-button");
+	dom.clearButton = document.getElementById("clear-button");
+	dom.hitButton = document.getElementById("hit-button");
+	dom.standButton = document.getElementById("stand-button");
+	dom.doubleButton = document.getElementById("double-button");
+	dom.splitButton = document.getElementById("split-button");
+}
+
+function wireEvents() {
+	var chips = document.querySelectorAll(".chip[data-amount]");
+	for (var i = 0; i < chips.length; i++) {
+		(function (chip) {
+			chip.addEventListener("click", function () {
+				addChip(parseInt(chip.dataset.amount, 10));
+			});
+		})(chips[i]);
+	}
+
+	dom.dealButton.addEventListener("click", dealPressed);
+	dom.clearButton.addEventListener("click", clearBet);
+	dom.hitButton.addEventListener("click", hit);
+	dom.standButton.addEventListener("click", stand);
+	dom.doubleButton.addEventListener("click", double);
+	dom.splitButton.addEventListener("click", split);
+
+	document.getElementById("insurance-yes").addEventListener("click", function () {
+		resolveInsurance(true);
+	});
+	document.getElementById("insurance-no").addEventListener("click", function () {
+		resolveInsurance(false);
+	});
+
+	document.getElementById("reset-balance-button").addEventListener("click", resetBankroll);
+	document.getElementById("reset-game").addEventListener("click", function (e) {
+		e.preventDefault();
+		resetBankroll();
+	});
+
+	// Rules modal
+	var rules = document.getElementById("rules-modal");
+	document.getElementById("rules-open").addEventListener("click", function (e) {
+		e.preventDefault();
+		rules.classList.add("show");
+	});
+	document.getElementById("rules-close").addEventListener("click", function () {
+		rules.classList.remove("show");
+	});
+	rules.addEventListener("click", function (e) {
+		if (e.target === rules) { rules.classList.remove("show"); }
+	});
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+	cacheDom();
+	wireEvents();
+	loadBankroll();
+	game.shoe = shuffle(buildShoe(NUM_DECKS));
+	render();
 });
-
-// But clicking close does not provide an animation effect
-$("#rules-close").click(function(){
-	$("#rules").hide();
-});
-
-// Materialize modal
-$(".modal").modal({ 
-      dismissible: false, 
-      opacity: .40, 
-      inDuration: 300, 
-      outDuration: 200, 
-      startingTop: "10%", // Starting top style attribute
-      endingTop: "10%", // Ending top style attribute
-    }
-  );
-
-// EVENT LISTENERS:
-$("#chip-10").click(function(){selectWager(10)});
-$("#chip-25").click(function(){selectWager(25)});
-$("#chip-50").click(function(){selectWager(50)});
-$("#chip-100").click(function(){selectWager(100)});
-
-// Button activation
-$(startButton).click(startGame);
-$(doubleDownButton).click(doubleDown); 
-$(hitButton).click(hit);
-$(standButton).click(stand);
-$(playAgainButton).click(newGame);
-$("#reset-game").click(resetGame);
-
-$(".reduce-aces-button").click(   // Can only see this if player draws 2 aces, would only be reducing in 1st deck
-	function(){
-		reduceAcesValue(playerHand);
-		disableButton(splitButton, split);
-}); 
