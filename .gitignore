@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverrideFile
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Audio override samples (optional local files, not committed)
+audio/

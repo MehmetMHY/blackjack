@@ -27,6 +27,8 @@ function dealPressed() {
 }
 
 function resetBankroll() {
+	game.bankruptcies++;
+	saveBankruptcies();
 	game.bankroll = STARTING_BANKROLL;
 	game.bet = 0;
 	game.message = "";

@@ -22,6 +22,7 @@ var game = {
 	hands: [],            // array of player hands (more than one after a split)
 	activeHand: 0,
 	bankroll: STARTING_BANKROLL,
+	bankruptcies: 0,      // lifetime count of resets / busts
 	bet: 0,               // pending wager while in the betting phase
 	lastBet: 0,           // remembered for quick re-bet
 	insuranceBet: 0,

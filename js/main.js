@@ -4,6 +4,7 @@
 // `revealed` so a card only animates on its first appearance / first reveal.
 
 var BANKROLL_KEY = "blackjackBankroll";
+var BANKRUPT_KEY = "blackjackBankruptcies";
 
 var seen = {};      // card uid -> has been rendered at least once
 var revealed = {};  // card uid -> has been shown face up at least once
@@ -27,6 +28,15 @@ function saveBankroll() {
 function loadBankroll() {
 	var stored = parseInt(localStorage.getItem(BANKROLL_KEY), 10);
 	game.bankroll = isNaN(stored) ? STARTING_BANKROLL : stored;
+}
+
+function saveBankruptcies() {
+	try { localStorage.setItem(BANKRUPT_KEY, String(game.bankruptcies)); } catch (e) {}
+}
+
+function loadBankruptcies() {
+	var n = parseInt(localStorage.getItem(BANKRUPT_KEY), 10);
+	game.bankruptcies = isNaN(n) ? 0 : n;
 }
 
 // --- Card elements ----------------------------------------------------------
@@ -152,6 +162,7 @@ function resultLabel(result) {
 
 function renderHud() {
 	dom.bankroll.textContent = "$" + game.bankroll;
+	dom.bustCount.textContent = game.bankruptcies;
 	dom.betAmount.textContent = game.bet ? "$" + game.bet : "";
 	dom.betCircle.classList.toggle("empty", !game.bet);
 }
@@ -209,6 +220,7 @@ function cacheDom() {
 	dom.playerHands = document.getElementById("player-hands");
 	dom.message = document.getElementById("message");
 	dom.bankroll = document.getElementById("bankroll");
+	dom.bustCount = document.getElementById("bust-count");
 	dom.betAmount = document.getElementById("bet-amount");
 	dom.betCircle = document.getElementById("bet-circle");
 	dom.chipTray = document.getElementById("chip-tray");
@@ -288,6 +300,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	wireEvents();
 	Sound.preload();
 	loadBankroll();
+	loadBankruptcies();
 	game.shoe = shuffle(buildShoe(NUM_DECKS));
 	render();
 });
