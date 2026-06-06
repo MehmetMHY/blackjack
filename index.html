@@ -1,120 +1,174 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-	<title>Blackjack</title>
-	<link rel="shortcut icon" href="img/favicon.ico">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="css/keyframes.css">
-	<link rel="stylesheet" type="text/css" href="css/style.css">
-</head>
-<body>
-	<header class="topbar">
-		<div class="brand">Blackjack</div>
-		<div class="topbar-right">
-			<div class="bankroll-chip">
-				<span class="bankroll-label">Balance</span>
-				<span id="bankroll">$2000</span>
-			</div>
-			<div class="stat-chip" title="Times gone bankrupt">
-				<span class="stat-label">Bust</span>
-				<span id="bust-count">0</span>
-			</div>
-			<a href="#" id="mute-button" class="icon-button" title="Toggle sound">&#128266;</a>
-			<a href="#" id="rules-open" class="icon-button" title="How to play">?</a>
-			<a href="#" id="reset-game" class="icon-button" title="Reset game">&#8635;</a>
-		</div>
-	</header>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Blackjack</title>
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" type="text/css" href="css/keyframes.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">Blackjack</div>
+      <div class="topbar-right">
+        <div class="bankroll-chip">
+          <span class="bankroll-label">Balance</span>
+          <span id="bankroll">$2000</span>
+        </div>
+        <div class="stat-chip" title="Times gone bankrupt">
+          <span class="stat-label">Bust</span>
+          <span id="bust-count">0</span>
+        </div>
+        <a href="#" id="mute-button" class="icon-button" title="Toggle sound"
+          >&#128266;</a
+        >
+        <a href="#" id="rules-open" class="icon-button" title="How to play"
+          >?</a
+        >
+        <a href="#" id="reset-game" class="icon-button" title="Reset game"
+          >&#8635;</a
+        >
+      </div>
+    </header>
 
-	<main class="table">
-		<!-- Dealer -->
-		<section class="dealer-area">
-			<div class="hand-label">Dealer <span id="dealer-total" class="badge dealer"></span></div>
-			<div id="dealer-cards" class="cards"></div>
-		</section>
+    <main class="table">
+      <!-- Dealer -->
+      <section class="dealer-area">
+        <div class="hand-label">
+          Dealer <span id="dealer-total" class="badge dealer"></span>
+        </div>
+        <div id="dealer-cards" class="cards"></div>
+      </section>
 
-		<!-- Center message -->
-		<div id="message" class="message"></div>
+      <!-- Center message -->
+      <div id="message" class="message"></div>
 
-		<!-- Player hands -->
-		<section id="player-hands" class="player-area"></section>
+      <!-- Player hands -->
+      <section id="player-hands" class="player-area"></section>
 
-		<!-- Controls -->
-		<section class="controls">
-			<div class="bet-row">
-				<div id="bet-circle" class="bet-circle empty">
-					<span id="bet-amount" class="bet-amount"></span>
-					<span class="bet-placeholder">BET</span>
-				</div>
-			</div>
+      <!-- Controls -->
+      <section class="controls">
+        <div class="bet-row">
+          <div id="bet-circle" class="bet-circle empty">
+            <span id="bet-amount" class="bet-amount"></span>
+            <span class="bet-placeholder">BET</span>
+          </div>
+        </div>
 
-			<!-- Chip tray is always visible; it greys out while a hand is in play -->
-			<div id="chip-tray" class="chip-tray">
-				<a href="#" class="chip" data-amount="10"><img src="img/10-chip.png" alt="10"></a>
-				<a href="#" class="chip" data-amount="25"><img src="img/25-chip.png" alt="25"></a>
-				<a href="#" class="chip" data-amount="50"><img src="img/50-chip.png" alt="50"></a>
-				<a href="#" class="chip" data-amount="100"><img src="img/100-chip.png" alt="100"></a>
-				<a href="#" class="chip chip-custom" data-amount="1000"><img src="img/chip_yellow_top.png" alt="1000"><span class="chip-denom">1K</span></a>
-			</div>
+        <!-- Chip tray is always visible; it greys out while a hand is in play -->
+        <div id="chip-tray" class="chip-tray">
+          <a href="#" class="chip" data-amount="10"
+            ><img src="img/10-chip.png" alt="10"
+          /></a>
+          <a href="#" class="chip" data-amount="25"
+            ><img src="img/25-chip.png" alt="25"
+          /></a>
+          <a href="#" class="chip" data-amount="50"
+            ><img src="img/50-chip.png" alt="50"
+          /></a>
+          <a href="#" class="chip" data-amount="100"
+            ><img src="img/100-chip.png" alt="100"
+          /></a>
+          <a href="#" class="chip chip-custom" data-amount="1000"
+            ><img src="img/chip_yellow_top.png" alt="1000" /><span
+              class="chip-denom"
+              >1K</span
+            ></a
+          >
+        </div>
 
-			<!-- Betting phase -->
-			<div id="bet-controls" class="control-group">
-				<div class="button-row">
-					<button id="clear-button" class="btn btn-ghost">Clear</button>
-					<button id="deal-button" class="btn btn-primary">Deal</button>
-				</div>
-			</div>
+        <!-- Betting phase -->
+        <div id="bet-controls" class="control-group">
+          <div class="button-row">
+            <button id="clear-button" class="btn btn-ghost">Clear</button>
+            <button id="deal-button" class="btn btn-primary">Deal</button>
+          </div>
+        </div>
 
-			<!-- Player turn -->
-			<div id="action-controls" class="control-group" style="display:none">
-				<div class="button-row">
-					<button id="hit-button" class="btn btn-action">Hit</button>
-					<button id="stand-button" class="btn btn-action">Stand</button>
-					<button id="double-button" class="btn btn-action">Double</button>
-					<button id="split-button" class="btn btn-action">Split</button>
-				</div>
-			</div>
+        <!-- Player turn -->
+        <div id="action-controls" class="control-group" style="display: none">
+          <div class="button-row">
+            <button id="hit-button" class="btn btn-action">Hit</button>
+            <button id="stand-button" class="btn btn-action">Stand</button>
+            <button id="double-button" class="btn btn-action">Double</button>
+            <button id="split-button" class="btn btn-action">Split</button>
+          </div>
+        </div>
 
-			<!-- Insurance -->
-			<div id="insurance-controls" class="control-group" style="display:none">
-				<p class="insurance-text">Dealer shows an Ace. Insurance? (<span id="insurance-cost">$0</span>)</p>
-				<div class="button-row">
-					<button id="insurance-yes" class="btn btn-primary">Insure</button>
-					<button id="insurance-no" class="btn btn-ghost">No</button>
-				</div>
-			</div>
+        <!-- Insurance -->
+        <div
+          id="insurance-controls"
+          class="control-group"
+          style="display: none"
+        >
+          <p class="insurance-text">
+            Dealer shows an Ace. Insurance? (<span id="insurance-cost">$0</span
+            >)
+          </p>
+          <div class="button-row">
+            <button id="insurance-yes" class="btn btn-primary">Insure</button>
+            <button id="insurance-no" class="btn btn-ghost">No</button>
+          </div>
+        </div>
 
-			<!-- Out of chips -->
-			<div id="reset-controls" class="control-group" style="display:none">
-				<p>You're out of chips!</p>
-				<button id="reset-balance-button" class="btn btn-primary">Get $2000</button>
-			</div>
-		</section>
-	</main>
+        <!-- Out of chips -->
+        <div id="reset-controls" class="control-group" style="display: none">
+          <p>You're out of chips!</p>
+          <button id="reset-balance-button" class="btn btn-primary">
+            Get $2000
+          </button>
+        </div>
+      </section>
+    </main>
 
-	<div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
 
-	<!-- Rules -->
-	<div id="rules-modal" class="modal-overlay">
-		<div class="modal">
-			<h2>How to Play</h2>
-			<p><strong>Goal.</strong> Beat the dealer by getting closer to 21 without going over. A natural blackjack is an Ace plus a 10-value card on your first two cards.</p>
-			<p><strong>Values.</strong> Number cards count their face value, face cards count 10, and Aces count 11 or 1 — whichever helps your hand.</p>
-			<p><strong>Your turn.</strong> Hit to take a card, Stand to hold, Double to double your bet for exactly one more card, or Split a matching pair into two hands.</p>
-			<p><strong>Dealer.</strong> The dealer reveals the hole card and draws until reaching at least 17.</p>
-			<p><strong>Payouts.</strong> Wins pay 1:1, a natural blackjack pays 3:2, and a tie is a push (your bet is returned). If the dealer shows an Ace you may buy insurance, which pays 2:1 if the dealer has blackjack.</p>
-			<button id="rules-close" class="btn btn-primary">Got it</button>
-		</div>
-	</div>
+    <!-- Rules -->
+    <div id="rules-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>How to Play</h2>
+        <p>
+          <strong>Goal.</strong> Beat the dealer by getting closer to 21 without
+          going over. A natural blackjack is an Ace plus a 10-value card on your
+          first two cards.
+        </p>
+        <p>
+          <strong>Values.</strong> Number cards count their face value, face
+          cards count 10, and Aces count 11 or 1 — whichever helps your hand.
+        </p>
+        <p>
+          <strong>Your turn.</strong> Hit to take a card, Stand to hold, Double
+          to double your bet for exactly one more card, or Split a matching pair
+          into two hands.
+        </p>
+        <p>
+          <strong>Dealer.</strong> The dealer reveals the hole card and draws
+          until reaching at least 17.
+        </p>
+        <p>
+          <strong>Payouts.</strong> Wins pay 1:1, a natural blackjack pays 3:2,
+          and a tie is a push (your bet is returned). If the dealer shows an Ace
+          you may buy insurance, which pays 2:1 if the dealer has blackjack.
+        </p>
+        <button id="rules-close" class="btn btn-primary">Got it</button>
+      </div>
+    </div>
 
-	<script type="text/javascript" src="js/sounds.js"></script>
-	<script type="text/javascript" src="js/cards.js"></script>
-	<script type="text/javascript" src="js/game-play-logic.js"></script>
-	<script type="text/javascript" src="js/game-win-logic.js"></script>
-	<script type="text/javascript" src="js/button-actions.js"></script>
-	<script type="text/javascript" src="js/main.js"></script>
-</body>
+    <script type="text/javascript" src="js/sounds.js"></script>
+    <script type="text/javascript" src="js/cards.js"></script>
+    <script type="text/javascript" src="js/game-play-logic.js"></script>
+    <script type="text/javascript" src="js/game-win-logic.js"></script>
+    <script type="text/javascript" src="js/button-actions.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+  </body>
 </html>
