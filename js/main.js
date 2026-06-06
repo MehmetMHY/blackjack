@@ -7,8 +7,13 @@ var BANKROLL_KEY = "blackjackBankroll";
 
 var seen = {};      // card uid -> has been rendered at least once
 var revealed = {};  // card uid -> has been shown face up at least once
+var cardSoundCount = 0; // staggers deal sounds within a single render pass
 
 var dom = {};
+
+function playSound(name, delay) {
+	if (typeof Sound !== "undefined") { Sound.play(name, delay); }
+}
 
 function resetRenderState() {
 	seen = {};
@@ -38,11 +43,17 @@ function cardEl(card, faceDown) {
 		if (seen[card.uid] && !revealed[card.uid]) {
 			// Previously dealt face down, now revealed: flip it.
 			img.classList.add("flip");
+			playSound("flip");
 		}
 		revealed[card.uid] = true;
 	}
 
-	if (isNew) { img.classList.add("dealing"); }
+	if (isNew) {
+		img.classList.add("dealing");
+		// Stagger so the opening deal sounds like several cards, not one snap.
+		playSound("card", cardSoundCount * 0.06);
+		cardSoundCount++;
+	}
 	seen[card.uid] = true;
 	return img;
 }
@@ -57,6 +68,7 @@ function badge(text, cls) {
 // --- Render -----------------------------------------------------------------
 
 function render() {
+	cardSoundCount = 0;
 	renderDealer();
 	renderPlayerHands();
 	renderHud();
@@ -239,6 +251,18 @@ function wireEvents() {
 		resolveInsurance(false);
 	});
 
+	// Sound mute toggle
+	var muteButton = document.getElementById("mute-button");
+	function updateMuteIcon() {
+		muteButton.innerHTML = Sound.isMuted() ? "&#128263;" : "&#128266;";
+	}
+	updateMuteIcon();
+	muteButton.addEventListener("click", function (e) {
+		e.preventDefault();
+		Sound.toggleMute();
+		updateMuteIcon();
+	});
+
 	document.getElementById("reset-balance-button").addEventListener("click", resetBankroll);
 	document.getElementById("reset-game").addEventListener("click", function (e) {
 		e.preventDefault();
@@ -262,6 +286,7 @@ function wireEvents() {
 document.addEventListener("DOMContentLoaded", function () {
 	cacheDom();
 	wireEvents();
+	Sound.preload();
 	loadBankroll();
 	game.shoe = shuffle(buildShoe(NUM_DECKS));
 	render();

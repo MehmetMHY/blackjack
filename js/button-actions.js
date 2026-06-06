@@ -10,6 +10,7 @@ function addChip(amount) {
 	}
 	game.bet += amount;
 	game.message = "";
+	playSound("chip");
 	render();
 }
 

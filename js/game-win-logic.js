@@ -52,6 +52,7 @@ function settleRound() {
 	}
 
 	game.message = buildOutcomeMessage(dealerBJ);
+	playOutcomeSound();
 
 	// Round over: ready the next bet and return to the betting phase.
 	game.phase = "betting";
@@ -59,6 +60,19 @@ function settleRound() {
 	game.bet = Math.min(game.lastBet, game.bankroll);
 	saveBankroll();
 	render();
+}
+
+function playOutcomeSound() {
+	var hasBJ = false, hasWin = false, hasPush = false;
+	for (var i = 0; i < game.hands.length; i++) {
+		var r = game.hands[i].result;
+		if (r === "blackjack") { hasBJ = true; }
+		else if (r === "win") { hasWin = true; }
+		else if (r === "push") { hasPush = true; }
+	}
+	var sound = hasBJ ? "blackjack" : hasWin ? "win" : hasPush ? "push" : "lose";
+	// Slight delay so it doesn't collide with the final card-deal sound.
+	playSound(sound, 0.18);
 }
 
 function buildOutcomeMessage(dealerBJ) {

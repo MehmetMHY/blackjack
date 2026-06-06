@@ -63,6 +63,7 @@ function startRound() {
 
 	if (game.shoe.length < RESHUFFLE_AT) {
 		game.shoe = shuffle(buildShoe(NUM_DECKS));
+		playSound("shuffle");
 	}
 
 	game.lastBet = game.bet;
