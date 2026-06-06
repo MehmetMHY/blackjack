@@ -81,7 +81,8 @@ function renderDealer() {
 		}
 	}
 	dom.dealerTotal.textContent = text;
-	dom.dealerTotal.style.visibility = text ? "visible" : "hidden";
+	// Collapse (not just hide) the badge when empty so "Dealer" stays centered.
+	dom.dealerTotal.style.display = text ? "inline-flex" : "none";
 }
 
 function renderPlayerHands() {

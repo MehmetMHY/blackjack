@@ -104,9 +104,11 @@ body::after {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: space-between;
+	/* center the whole stack as one unit; fixed zone heights below keep
+	   every element from shifting as cards are dealt or phases change */
+	justify-content: center;
 	padding: 18px 12px 24px;
-	gap: 10px;
+	gap: 14px;
 	position: relative;
 	z-index: 1;
 }
@@ -116,7 +118,8 @@ body::after {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	min-height: calc(var(--card-w) * 1.45);
+	/* reserved height so dealing cards never reflows the rest of the table */
+	min-height: calc(var(--card-w) * 1.6);
 }
 
 .player-area {
@@ -125,6 +128,7 @@ body::after {
 	justify-content: center;
 	gap: 28px;
 	align-items: flex-start;
+	min-height: calc(var(--card-w) * 1.95);
 }
 
 .hand-label {
@@ -142,8 +146,8 @@ body::after {
 .cards {
 	display: flex;
 	align-items: flex-start;
+	justify-content: center;
 	min-height: calc(var(--card-w) * 1.4);
-	padding-left: 22px; /* room for fanned overlap */
 }
 
 .card {
@@ -269,6 +273,10 @@ body::after {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	/* every group reserves the same footprint and bottom-aligns its content,
+	   so the main button row stays in one place across all phases */
+	min-height: 132px;
+	justify-content: flex-end;
 	gap: 12px;
 }
 
