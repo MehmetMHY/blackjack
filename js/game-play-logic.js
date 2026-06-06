@@ -3,7 +3,7 @@
 // Phases:
 //   "betting" -> player builds a wager and presses Deal
 //   "player"  -> player acts on each hand (hit/stand/double/split)
-//   "dealer"  -> dealer reveals the hole card and draws to 17
+//   "dealer"  -> dealer reveals the hole card and draws (hits soft 17)
 //   "settle"  -> outcomes resolved, payouts applied (transitions back to betting)
 //
 // Rendering is reactive: engine mutations call render() (defined in main.js),
@@ -321,8 +321,11 @@ function dealerTurn() {
 }
 
 function dealerStep() {
-  // Dealer stands on all 17s (including soft 17).
-  if (handValue(game.dealer.cards).total < 17) {
+  // H17: dealer hits on hard 16 or less AND on soft 17, otherwise stands.
+  // This is the standard 6-deck Vegas shoe rule the basic-strategy odds assume.
+  var dv = handValue(game.dealer.cards);
+  var mustHit = dv.total < 17 || (dv.total === 17 && dv.soft);
+  if (mustHit) {
     game.dealer.cards.push(draw());
     render();
     setTimeout(dealerStep, 800);
