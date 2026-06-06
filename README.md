@@ -46,3 +46,7 @@ Any file present is used automatically. Missing files fall back to the synth.
 - Original project: [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack)
 - Card graphics: [OpenGameArt](https://opengameart.org/content/cards-set)
 - Chip icons: [thenounproject.com](https://thenounproject.com)
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
