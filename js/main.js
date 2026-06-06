@@ -148,6 +148,9 @@ function renderControls() {
 	var betting = game.phase === "betting";
 	var playerTurn = game.phase === "player" && !game.awaitingInsurance;
 
+	// Chips stay on the table at all times; only enabled when a bet can be placed.
+	dom.chipTray.classList.toggle("disabled", !(betting && game.bankroll > 0));
+
 	dom.betControls.style.display = betting && !game.awaitingInsurance ? "" : "none";
 	dom.actionControls.style.display = playerTurn ? "" : "none";
 	dom.insuranceControls.style.display = game.awaitingInsurance ? "" : "none";
@@ -196,6 +199,7 @@ function cacheDom() {
 	dom.bankroll = document.getElementById("bankroll");
 	dom.betAmount = document.getElementById("bet-amount");
 	dom.betCircle = document.getElementById("bet-circle");
+	dom.chipTray = document.getElementById("chip-tray");
 	dom.betControls = document.getElementById("bet-controls");
 	dom.actionControls = document.getElementById("action-controls");
 	dom.insuranceControls = document.getElementById("insurance-controls");

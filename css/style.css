@@ -275,7 +275,7 @@ body::after {
 	align-items: center;
 	/* every group reserves the same footprint and bottom-aligns its content,
 	   so the main button row stays in one place across all phases */
-	min-height: 132px;
+	min-height: 96px;
 	justify-content: flex-end;
 	gap: 12px;
 }
@@ -284,6 +284,13 @@ body::after {
 	display: flex;
 	gap: 10px;
 	justify-content: center;
+	transition: opacity .25s, filter .25s;
+}
+/* Greyed out while a hand is in play (still visible, just inert) */
+.chip-tray.disabled {
+	opacity: .35;
+	filter: grayscale(.7);
+	pointer-events: none;
 }
 .chip { display: inline-block; line-height: 0; transition: transform .15s; }
 .chip img {
