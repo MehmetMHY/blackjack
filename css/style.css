@@ -123,11 +123,15 @@ body::after {
   justify-content: center;
   width: 36px;
   height: 36px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  font-family: inherit;
   text-decoration: none;
   font-size: 1.1em;
+  cursor: pointer;
   transition: background 0.2s;
 }
 .icon-button:hover {
@@ -314,6 +318,10 @@ body::after {
     opacity 0.35s,
     transform 0.35s;
   text-align: center;
+  /* Purely decorative: never intercept hover/clicks on the controls below it.
+	   Without this, the reserved (often invisible) message box can overlap the
+	   top of the action buttons and swallow their :hover. */
+  pointer-events: none;
 }
 .message.show {
   opacity: 1;
@@ -402,7 +410,11 @@ body::after {
 }
 .chip {
   display: inline-block;
+  padding: 0;
+  border: none;
+  background: none;
   line-height: 0;
+  cursor: pointer;
   transition: transform 0.15s;
 }
 /* Denomination overlaid on a blank chip (for values without a baked-in image) */
