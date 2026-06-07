@@ -174,21 +174,37 @@ body::after {
   font-size: 0.72em;
   opacity: 0.85;
   margin-bottom: 10px;
+  /* Center the word itself. The total badge is taken out of flow (below) so it
+	   can't pull the label off-center when it appears and disappears. */
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  position: relative;
+}
+.hand-label .badge {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
 }
 
 /* ---------- Cards ---------- */
 .cards {
   display: flex;
   align-items: flex-start;
-  justify-content: center;
+  /* Left-anchored, fixed-width track: the left card stays put and new cards
+	   extend to the right, so dealing/hitting never shifts the cards already on
+	   the table. A two-card hand exactly fills the track, keeping it centered. */
+  justify-content: flex-start;
+  width: calc(var(--card-w) * 1.5);
+  margin-inline: auto;
   min-height: calc(var(--card-w) * 1.4);
 }
 
 .card {
   width: var(--card-w);
+  flex: none; /* never shrink: extra cards overflow right rather than squeezing */
   border-radius: 8px;
   box-shadow: var(--shadow);
   background: #fff;
@@ -279,7 +295,12 @@ body::after {
 
 /* ---------- Center message ---------- */
 .message {
-  min-height: 34px;
+  /* Reserve enough height for the large Playfair line so showing/hiding the
+	   outcome text never nudges the dealer and controls vertically. */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Playfair Display", serif;
   font-size: clamp(1.1em, 4vw, 1.8em);
   color: var(--gold);
@@ -341,6 +362,13 @@ body::after {
 }
 .bet-circle:not(.empty) .bet-placeholder {
   display: none;
+}
+
+.control-slot {
+  width: 100%;
+  /* Always reserve the action-row height, even while every group inside is
+	   hidden (dealer's turn, settling), so nothing above or below shifts. */
+  min-height: 96px;
 }
 
 .control-group {

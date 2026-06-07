@@ -96,8 +96,12 @@
           >
         </div>
 
-        <!-- Betting phase -->
-        <div id="bet-controls" class="control-group">
+        <!-- Phase controls swap in here. The slot always reserves the action-row
+             height, even when every group inside is hidden (the dealer's turn
+             and settling), so the rows above and below never shift up or down. -->
+        <div class="control-slot">
+          <!-- Betting phase -->
+          <div id="bet-controls" class="control-group">
           <div class="button-row">
             <button id="clear-button" class="btn btn-ghost">Clear</button>
             <button id="deal-button" class="btn btn-primary">Deal</button>
@@ -136,6 +140,7 @@
           <button id="reset-balance-button" class="btn btn-primary">
             Get $2000
           </button>
+        </div>
         </div>
       </section>
     </main>
