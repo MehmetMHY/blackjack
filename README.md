@@ -6,7 +6,7 @@
 
 ## About
 
-A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built with vanilla JavaScript, HTML, and CSS. No frameworks or dependencies. This project was forked from [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack) and rebuilt from the ground up using tools like [Claude Code CLI](https://code.claude.com/docs/en/cli-reference), [Gemini CLI](https://geminicli.com/), [OpenCode CLI](https://opencode.ai/docs/cli/), and [Ch CLI](https://github.com/MehmetMHY/ch).
+A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built with vanilla JavaScript, HTML, and CSS. No frameworks or dependencies. This project was forked from [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack) and rebuilt from the ground up using the latest AI tools.
 
 ## Features
 
@@ -19,7 +19,7 @@ A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built 
 - Persistent balance, bust count, and sound/music preferences saved across sessions via localStorage
 - Responsive layout, card deal and flip animations
 
-## Running locally
+## Running Locally
 
 No build step needed. Open `index.html` in a browser, or serve the folder over HTTP:
 
@@ -29,7 +29,7 @@ python3 -m http.server
 
 Then visit `http://localhost:8000`.
 
-## Run engine simulation
+## Run Engine Simulation
 
 ```bash
 node test.js
@@ -56,6 +56,13 @@ What it does not do: teach table etiquette, hand signals, or the feel of a live 
 - Card graphics: [OpenGameArt](https://opengameart.org/content/cards-set)
 - Chip icons: [thenounproject.com](https://thenounproject.com)
 - Background music: [YouTube](https://www.youtube.com/watch?v=PaFHwTjy1yE)
+
+## Tools Used
+
+- [Claude Code CLI](https://code.claude.com/docs/en/cli-reference)
+- [Gemini CLI](https://geminicli.com/)
+- [OpenCode CLI](https://opencode.ai/docs/cli/)
+- [Ch CLI](https://github.com/MehmetMHY/ch)
 
 ## License
 
