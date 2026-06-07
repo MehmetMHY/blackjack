@@ -184,7 +184,9 @@ body::after {
   background: rgba(0, 0, 0, 0.25);
   color: #fff;
   font-family: inherit;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 #settings-open:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -527,7 +529,7 @@ body::after {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: #4a3a00;
+  color: #ffffff;
   font-size: clamp(14px, 3.8vw, 19px);
   letter-spacing: 0.5px;
   pointer-events: none;
@@ -558,8 +560,6 @@ body::after {
   display: flex;
   gap: 10px;
 }
-
-
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -745,7 +745,9 @@ body::after {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 .align-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.18);
@@ -778,5 +780,4 @@ body::after {
   .brand {
     display: none;
   }
-
 }

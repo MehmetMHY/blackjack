@@ -361,9 +361,11 @@ function wireEvents() {
     e.preventDefault();
     openSettings();
   });
-  document.getElementById("settings-close").addEventListener("click", function () {
-    settingsModal.classList.remove("show");
-  });
+  document
+    .getElementById("settings-close")
+    .addEventListener("click", function () {
+      settingsModal.classList.remove("show");
+    });
   settingsModal.addEventListener("click", function (e) {
     if (e.target === settingsModal) {
       settingsModal.classList.remove("show");
@@ -411,7 +413,9 @@ function wireEvents() {
     (function (btn) {
       btn.addEventListener("click", function () {
         var val = btn.dataset.align;
-        try { localStorage.setItem(ALIGN_KEY, val); } catch (e) {}
+        try {
+          localStorage.setItem(ALIGN_KEY, val);
+        } catch (e) {}
         applyAlignment(val);
       });
     })(alignBtns[i]);
