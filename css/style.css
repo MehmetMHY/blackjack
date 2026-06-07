@@ -583,6 +583,13 @@ body::after {
   margin: 18px auto 0;
 }
 
+/* ---------- Standalone PWA (added to home screen) ---------- */
+@media (display-mode: standalone) {
+  .brand {
+    display: none;
+  }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 480px) {
   .player-area {
