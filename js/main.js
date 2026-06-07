@@ -180,6 +180,8 @@ function resultLabel(result) {
       return "WIN";
     case "push":
       return "PUSH";
+    case "surrender":
+      return "SURRENDER";
     default:
       return "LOSE";
   }
@@ -194,15 +196,19 @@ function renderHud() {
 
 function renderControls() {
   var betting = game.phase === "betting";
-  var playerTurn = game.phase === "player" && !game.awaitingInsurance;
+  var playerTurn =
+    game.phase === "player" &&
+    !game.awaitingInsurance &&
+    !game.awaitingEvenMoney;
 
   // Chips stay on the table at all times; only enabled when a bet can be placed.
   dom.chipTray.classList.toggle("disabled", !(betting && game.bankroll > 0));
 
   dom.betControls.style.display =
-    betting && !game.awaitingInsurance ? "" : "none";
+    betting && !game.awaitingInsurance && !game.awaitingEvenMoney ? "" : "none";
   dom.actionControls.style.display = playerTurn ? "" : "none";
   dom.insuranceControls.style.display = game.awaitingInsurance ? "" : "none";
+  dom.evenMoneyControls.style.display = game.awaitingEvenMoney ? "" : "none";
 
   var broke = betting && game.bankroll <= 0 && game.bet <= 0;
   dom.resetControls.style.display = broke ? "" : "none";
@@ -219,10 +225,12 @@ function renderControls() {
     dom.standButton.disabled = !canAct;
     dom.doubleButton.disabled = !canDouble(h);
     dom.splitButton.disabled = !canSplit(h);
+    dom.surrenderButton.disabled = !canSurrender(h);
   }
 
   if (game.awaitingInsurance) {
-    dom.insuranceCost.textContent = "$" + Math.floor(game.lastBet / 2);
+    // Insurance is exactly half the bet (e.g. $12.50 on a $25 bet).
+    dom.insuranceCost.textContent = "$" + game.lastBet / 2;
   }
 }
 
@@ -254,6 +262,7 @@ function cacheDom() {
   dom.actionControls = document.getElementById("action-controls");
   dom.insuranceControls = document.getElementById("insurance-controls");
   dom.insuranceCost = document.getElementById("insurance-cost");
+  dom.evenMoneyControls = document.getElementById("even-money-controls");
   dom.resetControls = document.getElementById("reset-controls");
   dom.toast = document.getElementById("toast");
 
@@ -263,6 +272,7 @@ function cacheDom() {
   dom.standButton = document.getElementById("stand-button");
   dom.doubleButton = document.getElementById("double-button");
   dom.splitButton = document.getElementById("split-button");
+  dom.surrenderButton = document.getElementById("surrender-button");
 }
 
 function wireEvents() {
@@ -281,6 +291,7 @@ function wireEvents() {
   dom.standButton.addEventListener("click", stand);
   dom.doubleButton.addEventListener("click", double);
   dom.splitButton.addEventListener("click", split);
+  dom.surrenderButton.addEventListener("click", surrender);
 
   document
     .getElementById("insurance-yes")
@@ -291,6 +302,16 @@ function wireEvents() {
     .getElementById("insurance-no")
     .addEventListener("click", function () {
       resolveInsurance(false);
+    });
+  document
+    .getElementById("even-money-yes")
+    .addEventListener("click", function () {
+      resolveEvenMoney(true);
+    });
+  document
+    .getElementById("even-money-no")
+    .addEventListener("click", function () {
+      resolveEvenMoney(false);
     });
 
   // Sound mute toggle

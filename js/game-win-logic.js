@@ -21,12 +21,23 @@ function settleRound() {
 
   for (var i = 0; i < game.hands.length; i++) {
     var h = game.hands[i];
+
+    // Surrendered hands were already settled (half-bet refunded) at the moment
+    // of surrender; skip them entirely so they aren't re-evaluated or paid.
+    if (h.result === "surrender") {
+      continue;
+    }
+
     var total = handValue(h.cards).total;
     var playerBJ = isBlackjack(h.cards) && !h.fromSplit;
     var result,
       payout = 0;
 
-    if (total > 21) {
+    if (h.evenMoney) {
+      // Player took even money on a natural vs a dealer Ace: guaranteed 1:1.
+      result = "win";
+      payout = h.bet * 2;
+    } else if (total > 21) {
       result = "lose";
     } else if (playerBJ && !dealerBJ) {
       result = "blackjack";
@@ -91,9 +102,16 @@ function buildOutcomeMessage(dealerBJ) {
     var total = handValue(h.cards).total;
     switch (h.result) {
       case "blackjack":
-        return "Blackjack! You win " + Math.floor(h.bet * 1.5);
+        // 3:2 on a natural. A $25 bet wins exactly $37.50, paid in casino
+        // half-dollar / pink chips, so report the exact decimal (no flooring).
+        return "Blackjack! You win " + h.bet * 1.5;
       case "win":
+        if (h.evenMoney) {
+          return "Even money — you win " + h.bet;
+        }
         return "You win " + h.bet;
+      case "surrender":
+        return "Surrendered — half your bet returned";
       case "push":
         return "Push — bet returned";
       default:

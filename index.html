@@ -115,6 +115,9 @@
               <button id="stand-button" class="btn btn-action">Stand</button>
               <button id="double-button" class="btn btn-action">Double</button>
               <button id="split-button" class="btn btn-action">Split</button>
+              <button id="surrender-button" class="btn btn-action">
+                Surrender
+              </button>
             </div>
           </div>
 
@@ -132,6 +135,23 @@
             <div class="button-row">
               <button id="insurance-yes" class="btn btn-primary">Insure</button>
               <button id="insurance-no" class="btn btn-ghost">No</button>
+            </div>
+          </div>
+
+          <!-- Even money (player blackjack vs dealer Ace) -->
+          <div
+            id="even-money-controls"
+            class="control-group"
+            style="display: none"
+          >
+            <p class="insurance-text">
+              Blackjack vs an Ace. Take even money? (guaranteed 1:1)
+            </p>
+            <div class="button-row">
+              <button id="even-money-yes" class="btn btn-primary">
+                Even Money
+              </button>
+              <button id="even-money-no" class="btn btn-ghost">No</button>
             </div>
           </div>
 
@@ -164,7 +184,8 @@
         <p>
           <strong>Your turn.</strong> Hit to take a card, Stand to hold, Double
           to double your bet for exactly one more card, or Split a matching pair
-          into two hands.
+          into two hands. On your first two cards you may also Surrender to
+          forfeit the hand and get half your bet back.
         </p>
         <p>
           <strong>Dealer.</strong> The dealer reveals the hole card and draws
@@ -173,7 +194,9 @@
         <p>
           <strong>Payouts.</strong> Wins pay 1:1, a natural blackjack pays 3:2,
           and a tie is a push (your bet is returned). If the dealer shows an Ace
-          you may buy insurance, which pays 2:1 if the dealer has blackjack.
+          you may buy insurance, which pays 2:1 if the dealer has blackjack. If
+          you hold a blackjack against a dealer Ace, you may instead take even
+          money for a guaranteed 1:1 payout.
         </p>
         <button id="rules-close" class="btn btn-primary">Got it</button>
       </div>

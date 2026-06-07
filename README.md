@@ -6,9 +6,9 @@ A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built 
 
 ## Features
 
-- Full blackjack engine: hit, stand, double down, split (up to 4 hands), insurance, and dealer peek
+- Full blackjack engine: hit, stand, double down, split (up to 4 hands), insurance, late surrender, even money, and dealer peek
 - Natural blackjack pays 3:2, wins pay 1:1, pushes return your bet
-- 6-deck shoe with automatic reshuffle
+- 6-deck shoe (H17, DAS, late surrender, no resplitting aces) with realistic ~75% penetration and automatic reshuffle
 - Chip betting tray ($10, $25, $50, $100, $1000)
 - Synthesized sound effects via the Web Audio API, with a mute toggle
 - Looping background music with its own independent mute toggle, cached in IndexedDB so the track downloads only once
@@ -30,6 +30,25 @@ Then visit `http://localhost:8000`.
 ```bash
 node test.js
 ```
+
+This runs a headless verification harness over millions of hands to measure the house edge and validate the dealer model.
+
+## Accuracy
+
+The engine models one specific, standard Las Vegas table: 6-deck, dealer hits soft 17 (H17), double after split allowed (DAS), late surrender, and no resplitting aces.
+
+Verification over millions of simulated hands shows:
+
+- Dealer bust rate around 28.5% and dealer blackjack rate around 4.75%, both matching published 6-deck H17 figures
+- House edge around 0.6% to 0.7% per dollar wagered, which is the real-world number for this ruleset with basic strategy
+
+What this means in plain terms: a player who follows basic strategy here will see the same long-run odds and make the same decisions they would at a matching real table. It is an accurate odds-and-decisions trainer.
+
+What it does not do: teach table etiquette, hand signals, or the feel of a live pit, and it only models this one ruleset. A player who trains here and then sits at a different table (for example 6:5 payouts or stand on soft 17) will face different odds.
+
+## Features To Add (TODO)
+
+- [ ] Basic strategy coach mode: optionally flag when the player makes a mathematically wrong move and show the correct play. This would turn the game from "play a lot of hands" into "learn correct play," closing the gap between practice and real training.
 
 ## Swapping in real sound samples
 

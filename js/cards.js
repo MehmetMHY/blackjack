@@ -43,13 +43,18 @@ function buildShoe(numDecks) {
   return shoe;
 }
 
-// Improved shuffle using crypto.getRandomValues for better randomness
+// Improved shuffle using crypto.getRandomValues for better randomness.
+// Uses rejection sampling so the result is perfectly uniform (no modulo bias).
 function shuffle(deck) {
-  // Use crypto API if available for better randomness
   var getRandom = function (max) {
     if (window.crypto && window.crypto.getRandomValues) {
+      // Discard any value at or above the largest multiple of `max` that fits
+      // in a Uint32, so `% max` never favours the low end of the range.
+      var limit = Math.floor(4294967296 / max) * max;
       var randomBuffer = new Uint32Array(1);
-      window.crypto.getRandomValues(randomBuffer);
+      do {
+        window.crypto.getRandomValues(randomBuffer);
+      } while (randomBuffer[0] >= limit);
       return randomBuffer[0] % max;
     }
     return Math.floor(Math.random() * max);

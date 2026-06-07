@@ -11,7 +11,6 @@
 
 var STARTING_BANKROLL = 2000;
 var NUM_DECKS = 6;
-var RESHUFFLE_AT = 75; // reshuffle at ~25% penetration (more realistic)
 var MAX_HANDS = 4; // a pair can be split up to this many hands
 var BURN_CARDS = 1; // number of cards to burn after shuffle
 
@@ -29,6 +28,7 @@ var game = {
   lastBet: 0, // remembered for quick re-bet
   insuranceBet: 0,
   awaitingInsurance: false,
+  awaitingEvenMoney: false,
   phase: "betting",
   message: "",
 };
@@ -41,17 +41,36 @@ function newHand(card, bet, fromSplit) {
   return {
     cards: card ? [card] : [],
     bet: bet,
-    status: "playing", // "playing" | "stand" | "bust" | "bj"
+    status: "playing", // "playing" | "stand" | "bust" | "bj" | "surrendered"
     doubled: false,
     fromSplit: !!fromSplit,
     splitAces: false,
+    evenMoney: false,
     result: null,
   };
 }
 
+// Build a fresh, shuffled shoe, burn the configured number of cards, and reset
+// the cut-card position. Centralised so both startRound() and draw()'s safety
+// guard reshuffle identically.
+function reshuffleShoe() {
+  game.shoe = shuffle(buildShoe(NUM_DECKS));
+  for (var i = 0; i < BURN_CARDS; i++) {
+    game.shoe.pop();
+  }
+  // Cut card 60-89 cards from the end of a 312-card shoe gives ~71-81%
+  // penetration, which is realistic for a Las Vegas 6-deck game.
+  game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
+}
+
 // Draw a card from the shoe, tagging it with a unique id so the renderer can
-// tell which cards are new (for deal/flip animations).
+// tell which cards are new (for deal/flip animations). With 60+ cards reserved
+// behind the cut card this can't happen mid-round in practice, but guard against
+// an empty shoe so draw() can never throw on `card.uid`.
 function draw() {
+  if (game.shoe.length === 0) {
+    reshuffleShoe();
+  }
   var card = game.shoe.pop();
   card.uid = ++cardUid;
   return card;
@@ -74,14 +93,7 @@ function startRound() {
 
   // Check if we've reached the cut card position
   if (game.shoe.length <= game.cutCardPosition) {
-    game.shoe = shuffle(buildShoe(NUM_DECKS));
-    // Burn cards after shuffle (casino practice)
-    for (var i = 0; i < BURN_CARDS; i++) {
-      game.shoe.pop();
-    }
-    // Set cut card position randomly between 60-90 cards from the end
-    // This gives roughly 75-85% penetration
-    game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
+    reshuffleShoe();
     playSound("shuffle");
   }
 
@@ -92,6 +104,7 @@ function startRound() {
   game.activeHand = 0;
   game.insuranceBet = 0;
   game.awaitingInsurance = false;
+  game.awaitingEvenMoney = false;
   game.message = "";
   game.phase = "player";
 
@@ -114,7 +127,15 @@ function afterDeal() {
 
   // Check for dealer blackjack on both Ace and 10-value up cards
   if (up.rank === "Ace") {
-    // Offer insurance first
+    // When the player holds a natural against a dealer Ace, the table offers
+    // "even money" (a guaranteed 1:1 payout) instead of the insurance prompt.
+    // It is mathematically identical to insuring a blackjack for the full bet.
+    if (isBlackjack(game.hands[0].cards)) {
+      game.awaitingEvenMoney = true;
+      render();
+      return;
+    }
+    // Otherwise offer insurance first
     game.awaitingInsurance = true;
     render();
     return;
@@ -138,7 +159,9 @@ function resolveInsurance(takeInsurance) {
   game.awaitingInsurance = false;
 
   if (takeInsurance) {
-    var cost = Math.floor(game.lastBet / 2);
+    // Insurance is exactly half the original bet (casinos pay/take it in
+    // half-dollar increments, e.g. $12.50 on a $25 bet), so don't floor it.
+    var cost = game.lastBet / 2;
     if (cost > game.bankroll) {
       toast("Not enough chips for insurance");
     } else {
@@ -154,6 +177,30 @@ function resolveInsurance(takeInsurance) {
   }
 
   proceedAfterPeek();
+}
+
+// Player holds a natural against a dealer Ace and is offered even money.
+function resolveEvenMoney(takeEvenMoney) {
+  game.awaitingEvenMoney = false;
+
+  if (takeEvenMoney) {
+    // Guaranteed 1:1: the natural is paid even money and the round ends now,
+    // regardless of whether the dealer would have had a blackjack.
+    game.hands[0].status = "bj";
+    game.hands[0].evenMoney = true;
+    settleRound();
+    return;
+  }
+
+  // Declined: fall back to the normal peek. If the dealer also has a natural
+  // it's a push; otherwise the player's blackjack is paid 3:2.
+  if (isBlackjack(game.dealer.cards)) {
+    settleRound();
+    return;
+  }
+
+  game.hands[0].status = "bj";
+  settleRound();
 }
 
 function proceedAfterPeek() {
@@ -201,6 +248,37 @@ function stand() {
   }
   h.status = "stand";
   advanceHand();
+}
+
+// Late surrender: forfeit the hand for half the bet. Only legal on the opening
+// two cards of an un-split hand, after the dealer has peeked for blackjack
+// (which is guaranteed here because we're in the "player" phase).
+function canSurrender(h) {
+  return (
+    !!h &&
+    game.phase === "player" &&
+    !game.awaitingInsurance &&
+    !game.awaitingEvenMoney &&
+    h.status === "playing" &&
+    h.cards.length === 2 &&
+    !h.fromSplit &&
+    game.hands.length === 1
+  );
+}
+
+function surrender() {
+  var h = currentHand();
+  if (!canSurrender(h)) {
+    return;
+  }
+
+  h.status = "surrendered"; // distinct status so the dealer won't draw
+  h.result = "surrender";
+  // Return exactly half the (already-deducted) bet to the bankroll.
+  game.bankroll += h.bet / 2;
+  playSound("lose", 0.1);
+  render();
+  setTimeout(advanceHand, 400);
 }
 
 function canDouble(h) {
@@ -322,10 +400,11 @@ function dealerTurn() {
   game.dealer.hideHole = false;
   render();
 
-  // If every player hand busted, the dealer needn't draw.
+  // If every player hand busted or surrendered, the dealer needn't draw.
   var anyAlive = false;
   for (var i = 0; i < game.hands.length; i++) {
-    if (handValue(game.hands[i].cards).total <= 21) {
+    var hand = game.hands[i];
+    if (hand.status !== "surrendered" && handValue(hand.cards).total <= 21) {
       anyAlive = true;
       break;
     }

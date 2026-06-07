@@ -289,6 +289,9 @@ body::after {
 .result.push {
   background: rgba(255, 255, 255, 0.25);
 }
+.result.surrender {
+  background: rgba(140, 29, 24, 0.6);
+}
 .result.lose {
   background: #8c1d18;
 }
