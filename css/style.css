@@ -55,14 +55,33 @@ body::after {
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: max(12px, env(safe-area-inset-top))
-    max(18px, env(safe-area-inset-right)) 12px
-    max(18px, env(safe-area-inset-left));
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: 12px;
+  padding-left: max(18px, env(safe-area-inset-left));
+  padding-right: max(18px, env(safe-area-inset-right));
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 10;
+}
+
+.topbar-left,
+.topbar-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-right {
+  justify-content: flex-end;
+}
+
+.topbar-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .brand {
@@ -72,16 +91,10 @@ body::after {
   color: var(--gold);
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .bankroll-chip {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   line-height: 1.1;
   padding: 4px 14px;
   background: rgba(0, 0, 0, 0.35);
@@ -99,6 +112,11 @@ body::after {
 #bankroll {
   font-weight: 700;
   color: var(--gold);
+  /* Fixed width for the longest possible value ($1,000,000,000) so the
+     chip never resizes and the topbar never shifts */
+  min-width: 13ch;
+  text-align: center;
+  display: block;
 }
 
 .stat-chip {
@@ -156,10 +174,13 @@ body::after {
   justify-content: space-between;
   padding: 18px 12px 24px;
   gap: 0;
+  max-width: 560px;
+  width: 100%;
+  margin-inline: auto;
   position: relative;
   z-index: 1;
 }
-@media (min-width: 481px) {
+@media (min-width: 601px) {
   .table {
     justify-content: center;
     gap: 14px;
@@ -474,6 +495,21 @@ body::after {
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.btn-group-secondary,
+.btn-group-primary {
+  display: flex;
+  gap: 10px;
+}
+
+/* On mobile: right-align so Hit/Stand always hug the right thumb side;
+   secondary buttons (Double/Split/Surrender) naturally sit to their left */
+@media (max-width: 600px) {
+  .button-row {
+    justify-content: flex-end;
+  }
 }
 
 /* ---------- Buttons ---------- */
@@ -601,6 +637,84 @@ body::after {
   margin: 18px auto 0;
 }
 
+/* ---------- Button alignment ---------- */
+.controls.align-left {
+  align-items: flex-start;
+}
+.controls.align-left .bet-row,
+.controls.align-left .chip-tray,
+.controls.align-left .control-group,
+.controls.align-left .button-row {
+  justify-content: flex-start;
+}
+.controls.align-left .bet-circle {
+  margin-inline: 0;
+}
+
+.controls.align-right {
+  align-items: flex-end;
+}
+.controls.align-right .bet-row,
+.controls.align-right .chip-tray,
+.controls.align-right .control-group,
+.controls.align-right .button-row {
+  justify-content: flex-end;
+}
+.controls.align-right .bet-circle {
+  margin-inline: 0;
+}
+
+/* ---------- Settings modal ---------- */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  font-size: 0.95em;
+  opacity: 0.9;
+}
+
+.align-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.align-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.align-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.align-toggle-btn.active {
+  background: var(--gold-deep);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
 /* ---------- Standalone PWA (added to home screen) ---------- */
 @media (display-mode: standalone) {
   .brand {
@@ -609,7 +723,7 @@ body::after {
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .player-area {
     gap: 14px;
   }
@@ -621,6 +735,7 @@ body::after {
     padding: 11px 12px;
   }
   .brand {
-    font-size: 1.2em;
+    display: none;
   }
+
 }

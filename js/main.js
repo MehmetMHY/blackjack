@@ -5,6 +5,7 @@
 
 var BANKROLL_KEY = "blackjackBankroll";
 var BANKRUPT_KEY = "blackjackBankruptcies";
+var ALIGN_KEY = "blackjackButtonAlign";
 
 var seen = {}; // card uid -> has been rendered at least once
 var revealed = {}; // card uid -> has been shown face up at least once
@@ -276,6 +277,26 @@ function cacheDom() {
   dom.surrenderButton = document.getElementById("surrender-button");
 }
 
+// --- Button alignment -------------------------------------------------------
+
+function applyAlignment(val) {
+  var controls = document.querySelector(".controls");
+  controls.classList.remove("align-left", "align-center", "align-right");
+  if (val === "left" || val === "right") {
+    controls.classList.add("align-" + val);
+  }
+  // Update toggle button highlight
+  var btns = document.querySelectorAll(".align-toggle-btn");
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle("active", btns[i].dataset.align === val);
+  }
+}
+
+function loadAlignment() {
+  var stored = localStorage.getItem(ALIGN_KEY);
+  applyAlignment(stored || "center");
+}
+
 function wireEvents() {
   var chips = document.querySelectorAll(".chip[data-amount]");
   for (var i = 0; i < chips.length; i++) {
@@ -315,12 +336,42 @@ function wireEvents() {
       resolveEvenMoney(false);
     });
 
-  // Sound mute toggle
-  var muteButton = document.getElementById("mute-button");
+  // SVG icons
+  var SVG_SETTINGS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
   var SVG_SOUND_ON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
   var SVG_SOUND_OFF =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+  var SVG_MUSIC_ON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+  var SVG_MUSIC_OFF =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+
+  // Settings button in topbar
+  var settingsOpen = document.getElementById("settings-open");
+  var settingsModal = document.getElementById("settings-modal");
+  settingsOpen.innerHTML = SVG_SETTINGS;
+  function openSettings() {
+    updateMuteIcon();
+    updateMusicIcon();
+    settingsModal.classList.add("show");
+  }
+  settingsOpen.addEventListener("click", function (e) {
+    e.preventDefault();
+    openSettings();
+  });
+  document.getElementById("settings-close").addEventListener("click", function () {
+    settingsModal.classList.remove("show");
+  });
+  settingsModal.addEventListener("click", function (e) {
+    if (e.target === settingsModal) {
+      settingsModal.classList.remove("show");
+    }
+  });
+
+  // Sound mute toggle (inside settings modal)
+  var muteButton = document.getElementById("mute-button");
   function updateMuteIcon() {
     muteButton.innerHTML = Sound.isMuted() ? SVG_SOUND_OFF : SVG_SOUND_ON;
   }
@@ -331,12 +382,8 @@ function wireEvents() {
     updateMuteIcon();
   });
 
-  // Background music toggle (independent of the sound-effects mute above)
+  // Music toggle (inside settings modal)
   var musicButton = document.getElementById("music-button");
-  var SVG_MUSIC_ON =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
-  var SVG_MUSIC_OFF =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
   function updateMusicIcon() {
     musicButton.innerHTML = Music.isMuted() ? SVG_MUSIC_OFF : SVG_MUSIC_ON;
   }
@@ -350,15 +397,31 @@ function wireEvents() {
   document
     .getElementById("reset-balance-button")
     .addEventListener("click", resetBankroll);
+
+  // Reset game (inside settings modal — closes modal then resets)
   document.getElementById("reset-game").addEventListener("click", function (e) {
     e.preventDefault();
+    settingsModal.classList.remove("show");
     resetBankroll();
   });
 
-  // Rules modal
+  // Button alignment toggle
+  var alignBtns = document.querySelectorAll(".align-toggle-btn");
+  for (var i = 0; i < alignBtns.length; i++) {
+    (function (btn) {
+      btn.addEventListener("click", function () {
+        var val = btn.dataset.align;
+        try { localStorage.setItem(ALIGN_KEY, val); } catch (e) {}
+        applyAlignment(val);
+      });
+    })(alignBtns[i]);
+  }
+
+  // Rules modal — opened from settings modal
   var rules = document.getElementById("rules-modal");
   document.getElementById("rules-open").addEventListener("click", function (e) {
     e.preventDefault();
+    settingsModal.classList.remove("show");
     rules.classList.add("show");
   });
   document.getElementById("rules-close").addEventListener("click", function () {
@@ -378,6 +441,7 @@ document.addEventListener("DOMContentLoaded", function () {
   Music.init();
   loadBankroll();
   loadBankruptcies();
+  loadAlignment();
   game.shoe = shuffle(buildShoe(NUM_DECKS));
   // Initialize cut card position
   game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
