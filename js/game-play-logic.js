@@ -124,7 +124,7 @@ function afterDeal() {
     // Dealer peeks for blackjack on 10-value up card
     if (isBlackjack(game.dealer.cards)) {
       // Add slight delay to simulate peek
-      setTimeout(function() {
+      setTimeout(function () {
         settleRound();
       }, 400);
       return;
@@ -342,12 +342,12 @@ function dealerStep() {
   // H17: dealer hits on hard 16 or less AND on soft 17, otherwise stands.
   // This is the standard 6-deck Vegas shoe rule.
   var dv = handValue(game.dealer.cards);
-  
+
   // Must hit if:
   // - Total is less than 17
   // - Total is exactly 17 AND it's soft (has an ace counted as 11)
   var mustHit = dv.total < 17 || (dv.total === 17 && dv.soft);
-  
+
   if (mustHit) {
     game.dealer.cards.push(draw());
     render();

@@ -28,7 +28,7 @@ Then visit `http://localhost:8000`.
 ## Run engine simulation
 
 ```bash
-node test-engine.js
+node test.js
 ```
 
 ## Swapping in real sound samples

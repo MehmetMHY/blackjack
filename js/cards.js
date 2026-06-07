@@ -46,7 +46,7 @@ function buildShoe(numDecks) {
 // Improved shuffle using crypto.getRandomValues for better randomness
 function shuffle(deck) {
   // Use crypto API if available for better randomness
-  var getRandom = function(max) {
+  var getRandom = function (max) {
     if (window.crypto && window.crypto.getRandomValues) {
       var randomBuffer = new Uint32Array(1);
       window.crypto.getRandomValues(randomBuffer);
