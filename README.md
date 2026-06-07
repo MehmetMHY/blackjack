@@ -44,32 +44,11 @@ The engine models one specific, standard Las Vegas table: 6-deck, dealer hits so
 Verification over millions of simulated hands shows:
 
 - Dealer bust rate around 28.5% and dealer blackjack rate around 4.75%, both matching published 6-deck H17 figures
-- House edge around 0.6% to 0.7% per dollar wagered, which is the real-world number for this ruleset with basic strategy
+- House edge around 0.6% per initial bet. Because basic strategy involves putting more money on the table through doubles and splits, the actual house edge per total dollar wagered is roughly 0.4%
 
-What this means in plain terms: a player who follows basic strategy here will see the same long-run odds and make the same decisions they would at a matching real table. It is an accurate odds-and-decisions trainer.
+What this means in plain terms: a player who follows basic strategy here will see the same long-run odds and make the same decisions they would at a matching real table. It is an accurate odds and decisions trainer.
 
 What it does not do: teach table etiquette, hand signals, or the feel of a live pit, and it only models this one ruleset. A player who trains here and then sits at a different table (for example 6:5 payouts or stand on soft 17) will face different odds.
-
-## TODO List
-
-- [ ] Basic strategy coach mode: optionally flag when the player makes a mathematically wrong move and show the correct play. This would turn the game from "play a lot of hands" into "learn correct play," closing the gap between practice and real training.
-
-## Swapping in real sound samples
-
-Drop `.mp3` files into an `/audio` folder to override the synthesized effects:
-
-```
-audio/card.mp3
-audio/flip.mp3
-audio/chip.mp3
-audio/win.mp3
-audio/blackjack.mp3
-audio/lose.mp3
-audio/push.mp3
-audio/shuffle.mp3
-```
-
-Any file present is used automatically. Missing files fall back to the synth.
 
 ## Credits
 
