@@ -149,11 +149,11 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* center the whole stack as one unit; fixed zone heights below keep
-	   every element from shifting as cards are dealt or phases change */
-  justify-content: center;
+  /* space-between pins dealer at top, controls at bottom, message+player in
+     between — nothing shifts when content appears or disappears */
+  justify-content: space-between;
   padding: 18px 12px 24px;
-  gap: 14px;
+  gap: 0;
   position: relative;
   z-index: 1;
 }
@@ -382,21 +382,31 @@ body::after {
 
 .control-slot {
   width: 100%;
-  /* Always reserve the action-row height, even while every group inside is
-	   hidden (dealer's turn, settling), so nothing above or below shifts. */
-  min-height: 96px;
+  /* Stack all groups on top of each other; the tallest one (action buttons)
+     sets the height permanently — nothing outside ever shifts. */
+  display: grid;
+  grid-template-areas: "slot";
 }
 
 .control-group {
+  grid-area: slot;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* every group reserves the same footprint and bottom-aligns its content,
-	   so the main button row stays in one place across all phases */
-  min-height: 96px;
   justify-content: flex-end;
   gap: 12px;
+  min-height: 96px;
+  /* Hide/show by fading — never by collapsing — so the slot height is fixed */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+.control-group.active {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .chip-tray {

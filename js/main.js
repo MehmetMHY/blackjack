@@ -204,14 +204,15 @@ function renderControls() {
   // Chips stay on the table at all times; only enabled when a bet can be placed.
   dom.chipTray.classList.toggle("disabled", !(betting && game.bankroll > 0));
 
-  dom.betControls.style.display =
-    betting && !game.awaitingInsurance && !game.awaitingEvenMoney ? "" : "none";
-  dom.actionControls.style.display = playerTurn ? "" : "none";
-  dom.insuranceControls.style.display = game.awaitingInsurance ? "" : "none";
-  dom.evenMoneyControls.style.display = game.awaitingEvenMoney ? "" : "none";
-
   var broke = betting && game.bankroll <= 0 && game.bet <= 0;
-  dom.resetControls.style.display = broke ? "" : "none";
+  var showBet =
+    betting && !game.awaitingInsurance && !game.awaitingEvenMoney && !broke;
+
+  dom.betControls.classList.toggle("active", showBet);
+  dom.actionControls.classList.toggle("active", playerTurn);
+  dom.insuranceControls.classList.toggle("active", !!game.awaitingInsurance);
+  dom.evenMoneyControls.classList.toggle("active", !!game.awaitingEvenMoney);
+  dom.resetControls.classList.toggle("active", broke);
 
   if (betting) {
     dom.dealButton.disabled = game.bet <= 0 || game.bet > game.bankroll;

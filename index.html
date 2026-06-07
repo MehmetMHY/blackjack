@@ -160,7 +160,7 @@
              and settling), so the rows above and below never shift up or down. -->
         <div class="control-slot">
           <!-- Betting phase -->
-          <div id="bet-controls" class="control-group">
+          <div id="bet-controls" class="control-group active">
             <div class="button-row">
               <button id="clear-button" class="btn btn-ghost">Clear</button>
               <button id="deal-button" class="btn btn-primary">Deal</button>
@@ -168,7 +168,7 @@
           </div>
 
           <!-- Player turn -->
-          <div id="action-controls" class="control-group" style="display: none">
+          <div id="action-controls" class="control-group">
             <div class="button-row">
               <button id="hit-button" class="btn btn-action">Hit</button>
               <button id="stand-button" class="btn btn-action">Stand</button>
@@ -181,11 +181,7 @@
           </div>
 
           <!-- Insurance -->
-          <div
-            id="insurance-controls"
-            class="control-group"
-            style="display: none"
-          >
+          <div id="insurance-controls" class="control-group">
             <p class="insurance-text">
               Dealer shows an Ace. Insurance? (<span id="insurance-cost"
                 >$0</span
@@ -198,11 +194,7 @@
           </div>
 
           <!-- Even money (player blackjack vs dealer Ace) -->
-          <div
-            id="even-money-controls"
-            class="control-group"
-            style="display: none"
-          >
+          <div id="even-money-controls" class="control-group">
             <p class="insurance-text">
               Blackjack vs an Ace. Take even money? (guaranteed 1:1)
             </p>
@@ -215,7 +207,7 @@
           </div>
 
           <!-- Out of chips -->
-          <div id="reset-controls" class="control-group" style="display: none">
+          <div id="reset-controls" class="control-group">
             <p>You're out of chips!</p>
             <button id="reset-balance-button" class="btn btn-primary">
               Get $2000
