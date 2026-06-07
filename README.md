@@ -11,7 +11,8 @@ A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built 
 - 6-deck shoe with automatic reshuffle
 - Chip betting tray ($10, $25, $50, $100, $1000)
 - Synthesized sound effects via the Web Audio API, with a mute toggle
-- Persistent balance, bust count, and sound preference saved across sessions via localStorage
+- Looping background music with its own independent mute toggle, cached in IndexedDB so the track downloads only once
+- Persistent balance, bust count, and sound/music preferences saved across sessions via localStorage
 - Responsive layout, card deal and flip animations
 
 ## Running locally
@@ -46,6 +47,7 @@ Any file present is used automatically. Missing files fall back to the synth.
 - Original project: [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack)
 - Card graphics: [OpenGameArt](https://opengameart.org/content/cards-set)
 - Chip icons: [thenounproject.com](https://thenounproject.com)
+- Background music: [YouTube](https://www.youtube.com/watch?v=PaFHwTjy1yE)
 
 ## License
 

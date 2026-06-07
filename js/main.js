@@ -53,9 +53,9 @@ function cardEl(card, faceDown) {
   var isNew = !seen[card.uid];
 
   if (faceDown) {
-    img.src = "img/card_back.png";
+    img.src = "assets/card_back.png";
   } else {
-    img.src = "img/" + card.src;
+    img.src = "assets/" + card.src;
     if (seen[card.uid] && !revealed[card.uid]) {
       // Previously dealt face down, now revealed: flip it.
       img.classList.add("flip");
@@ -308,6 +308,22 @@ function wireEvents() {
     updateMuteIcon();
   });
 
+  // Background music toggle (independent of the sound-effects mute above)
+  var musicButton = document.getElementById("music-button");
+  var SVG_MUSIC_ON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+  var SVG_MUSIC_OFF =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+  function updateMusicIcon() {
+    musicButton.innerHTML = Music.isMuted() ? SVG_MUSIC_OFF : SVG_MUSIC_ON;
+  }
+  updateMusicIcon();
+  musicButton.addEventListener("click", function (e) {
+    e.preventDefault();
+    Music.toggleMute();
+    updateMusicIcon();
+  });
+
   document
     .getElementById("reset-balance-button")
     .addEventListener("click", resetBankroll);
@@ -336,6 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
   cacheDom();
   wireEvents();
   Sound.preload();
+  Music.init();
   loadBankroll();
   loadBankruptcies();
   game.shoe = shuffle(buildShoe(NUM_DECKS));

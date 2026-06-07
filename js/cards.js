@@ -1,5 +1,5 @@
 // Deck construction and hand-value helpers.
-// Card images live in /img and follow the pattern "<Suit>-<Rank>.png"
+// Card images live in /assets and follow the pattern "<Suit>-<Rank>.png"
 // where the diamonds folder name is the singular "Diamond".
 
 var SUITS = [
