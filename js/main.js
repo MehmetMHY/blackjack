@@ -351,7 +351,7 @@ function wireEvents() {
   // Settings button in topbar
   var settingsOpen = document.getElementById("settings-open");
   var settingsModal = document.getElementById("settings-modal");
-  settingsOpen.innerHTML = SVG_SETTINGS;
+  document.getElementById("settings-icon").innerHTML = SVG_SETTINGS;
   function openSettings() {
     updateMuteIcon();
     updateMusicIcon();

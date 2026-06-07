@@ -6,6 +6,7 @@
   --ink: #0b2316;
   --card-w: clamp(58px, 13.5vw, 96px);
   --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  --topbar-chip-h: 42px;
 }
 
 * {
@@ -82,6 +83,7 @@ body::after {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  padding-right: 0px; /* TUNE THIS to shift the group left/right */
 }
 
 .brand {
@@ -95,8 +97,10 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   line-height: 1.1;
   padding: 4px 14px;
+  height: var(--topbar-chip-h);
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--gold-deep);
   border-radius: 999px;
@@ -123,8 +127,10 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   line-height: 1.1;
-  padding: 4px 12px;
+  padding: 4px 14px;
+  height: var(--topbar-chip-h);
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
@@ -139,6 +145,27 @@ body::after {
 
 #bust-count {
   font-weight: 700;
+  min-width: 3ch;
+  text-align: center;
+  display: block;
+}
+
+#settings-open {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-family: inherit;
+  transition: background 0.2s, border-color 0.2s;
+}
+#settings-open:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+#settings-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-button {
@@ -504,13 +531,7 @@ body::after {
   gap: 10px;
 }
 
-/* On mobile: right-align so Hit/Stand always hug the right thumb side;
-   secondary buttons (Double/Split/Surrender) naturally sit to their left */
-@media (max-width: 600px) {
-  .button-row {
-    justify-content: flex-end;
-  }
-}
+
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -638,12 +659,8 @@ body::after {
 }
 
 /* ---------- Button alignment ---------- */
-.controls.align-left {
-  align-items: flex-start;
-}
 .controls.align-left .bet-row,
 .controls.align-left .chip-tray,
-.controls.align-left .control-group,
 .controls.align-left .button-row {
   justify-content: flex-start;
 }
@@ -651,12 +668,8 @@ body::after {
   margin-inline: 0;
 }
 
-.controls.align-right {
-  align-items: flex-end;
-}
 .controls.align-right .bet-row,
 .controls.align-right .chip-tray,
-.controls.align-right .control-group,
 .controls.align-right .button-row {
   justify-content: flex-end;
 }
