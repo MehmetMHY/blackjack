@@ -356,5 +356,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadBankroll();
   loadBankruptcies();
   game.shoe = shuffle(buildShoe(NUM_DECKS));
+  // Initialize cut card position
+  game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
   render();
 });

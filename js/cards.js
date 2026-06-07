@@ -43,10 +43,20 @@ function buildShoe(numDecks) {
   return shoe;
 }
 
-// In-place Fisher-Yates shuffle, returns the same array for convenience.
+// Improved shuffle using crypto.getRandomValues for better randomness
 function shuffle(deck) {
+  // Use crypto API if available for better randomness
+  var getRandom = function(max) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var randomBuffer = new Uint32Array(1);
+      window.crypto.getRandomValues(randomBuffer);
+      return randomBuffer[0] % max;
+    }
+    return Math.floor(Math.random() * max);
+  };
+
   for (var i = deck.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
+    var j = getRandom(i + 1);
     var tmp = deck[i];
     deck[i] = deck[j];
     deck[j] = tmp;

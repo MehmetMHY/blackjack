@@ -25,6 +25,12 @@ python3 -m http.server
 
 Then visit `http://localhost:8000`.
 
+## Run engine simulation
+
+```bash
+node test-engine.js
+```
+
 ## Swapping in real sound samples
 
 Drop `.mp3` files into an `/audio` folder to override the synthesized effects:

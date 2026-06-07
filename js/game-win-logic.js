@@ -7,6 +7,9 @@
 //   push ................. stake returned -> bet * 1 returned
 //   loss ................. nothing returned
 //   insurance ........... pays 2:1  -> insuranceBet * 3 returned
+//
+// Note: Some casinos now pay 6:5 for blackjack instead of 3:2, which increases
+// the house edge significantly. We'll use the traditional 3:2 payout.
 
 function settleRound() {
   game.phase = "settle";

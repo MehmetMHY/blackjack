@@ -11,13 +11,15 @@
 
 var STARTING_BANKROLL = 2000;
 var NUM_DECKS = 6;
-var RESHUFFLE_AT = 30; // reshuffle the shoe when it drops below this many cards
+var RESHUFFLE_AT = 75; // reshuffle at ~25% penetration (more realistic)
 var MAX_HANDS = 4; // a pair can be split up to this many hands
+var BURN_CARDS = 1; // number of cards to burn after shuffle
 
 var cardUid = 0;
 
 var game = {
   shoe: [],
+  cutCardPosition: 0, // position where reshuffle will occur
   dealer: { cards: [], hideHole: true },
   hands: [], // array of player hands (more than one after a split)
   activeHand: 0,
@@ -70,8 +72,16 @@ function startRound() {
     return;
   }
 
-  if (game.shoe.length < RESHUFFLE_AT) {
+  // Check if we've reached the cut card position
+  if (game.shoe.length <= game.cutCardPosition) {
     game.shoe = shuffle(buildShoe(NUM_DECKS));
+    // Burn cards after shuffle (casino practice)
+    for (var i = 0; i < BURN_CARDS; i++) {
+      game.shoe.pop();
+    }
+    // Set cut card position randomly between 60-90 cards from the end
+    // This gives roughly 75-85% penetration
+    game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
     playSound("shuffle");
   }
 
@@ -100,18 +110,25 @@ function startRound() {
 // After the opening deal, handle insurance and dealer/player naturals.
 function afterDeal() {
   var up = game.dealer.cards[0];
+  var hole = game.dealer.cards[1];
 
+  // Check for dealer blackjack on both Ace and 10-value up cards
   if (up.rank === "Ace") {
-    // Offer insurance, then peek for dealer blackjack.
+    // Offer insurance first
     game.awaitingInsurance = true;
     render();
     return;
   }
 
-  if (up.value === 10 && isBlackjack(game.dealer.cards)) {
-    // Dealer peeks on a ten-value up card; blackjack ends the round now.
-    settleRound();
-    return;
+  if (up.value === 10) {
+    // Dealer peeks for blackjack on 10-value up card
+    if (isBlackjack(game.dealer.cards)) {
+      // Add slight delay to simulate peek
+      setTimeout(function() {
+        settleRound();
+      }, 400);
+      return;
+    }
   }
 
   proceedAfterPeek();
@@ -130,6 +147,7 @@ function resolveInsurance(takeInsurance) {
     }
   }
 
+  // Always check for dealer blackjack when showing an Ace
   if (isBlackjack(game.dealer.cards)) {
     settleRound();
     return;
@@ -322,13 +340,23 @@ function dealerTurn() {
 
 function dealerStep() {
   // H17: dealer hits on hard 16 or less AND on soft 17, otherwise stands.
-  // This is the standard 6-deck Vegas shoe rule the basic-strategy odds assume.
+  // This is the standard 6-deck Vegas shoe rule.
   var dv = handValue(game.dealer.cards);
+  
+  // Must hit if:
+  // - Total is less than 17
+  // - Total is exactly 17 AND it's soft (has an ace counted as 11)
   var mustHit = dv.total < 17 || (dv.total === 17 && dv.soft);
+  
   if (mustHit) {
     game.dealer.cards.push(draw());
     render();
-    setTimeout(dealerStep, 800);
+    // Check if dealer busted
+    if (handValue(game.dealer.cards).total > 21) {
+      setTimeout(settleRound, 500);
+    } else {
+      setTimeout(dealerStep, 800);
+    }
   } else {
     setTimeout(settleRound, 500);
   }

@@ -15,3 +15,6 @@ audio/
 
 # others
 .sandbox/
+.opencode/
+.claude/
+ch_*
