@@ -1,8 +1,12 @@
+<div align="center">
+  <img src="./assets/favicon.ico" width=100>
+</div>
+
 # Blackjack
 
 ## About
 
-A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built with vanilla JavaScript, HTML, and CSS. No frameworks or dependencies. This project was forked from [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack) and rebuilt from the ground up using tools like [Claude Code CLI](https://code.claude.com/docs/en/cli-reference) and [Gemini CLI](https://geminicli.com/).
+A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built with vanilla JavaScript, HTML, and CSS. No frameworks or dependencies. This project was forked from [jacquelynmarcella/blackjack](https://github.com/jacquelynmarcella/blackjack) and rebuilt from the ground up using tools like [Claude Code CLI](https://code.claude.com/docs/en/cli-reference), [Gemini CLI](https://geminicli.com/), [OpenCode CLI](https://opencode.ai/docs/cli/), and [Ch CLI](https://github.com/MehmetMHY/ch).
 
 ## Features
 
