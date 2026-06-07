@@ -50,7 +50,7 @@ What this means in plain terms: a player who follows basic strategy here will se
 
 What it does not do: teach table etiquette, hand signals, or the feel of a live pit, and it only models this one ruleset. A player who trains here and then sits at a different table (for example 6:5 payouts or stand on soft 17) will face different odds.
 
-## Features To Add (TODO)
+## TODO List
 
 - [ ] Basic strategy coach mode: optionally flag when the player makes a mathematically wrong move and show the correct play. This would turn the game from "play a lot of hands" into "learn correct play," closing the gap between practice and real training.
 
