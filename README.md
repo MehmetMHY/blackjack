@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/favicon.ico" width=100>
+  <img src="./assets/favicon.ico" width=150>
 </div>
 
 # Blackjack
