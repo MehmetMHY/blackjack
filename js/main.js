@@ -10,6 +10,7 @@ var ALIGN_KEY = "blackjackButtonAlign";
 var seen = {}; // card uid -> has been rendered at least once
 var revealed = {}; // card uid -> has been shown face up at least once
 var cardSoundCount = 0; // staggers deal sounds within a single render pass
+var viewportModeFrame = null;
 
 var dom = {};
 
@@ -51,6 +52,7 @@ function loadBankruptcies() {
 function cardEl(card, faceDown) {
   var img = document.createElement("img");
   img.className = "card";
+  img.draggable = false;
   var isNew = !seen[card.uid];
 
   if (faceDown) {
@@ -92,6 +94,27 @@ function render() {
   renderControls();
   dom.message.textContent = game.message || "";
   dom.message.classList.toggle("show", !!game.message);
+  scheduleViewportMode();
+}
+
+function updateViewportMode() {
+  if (!document.body) {
+    return;
+  }
+
+  document.body.classList.remove("compact-viewport");
+
+  var doc = document.documentElement;
+  var overflows = doc.scrollHeight > window.innerHeight + 2;
+  var shouldCompact = window.innerWidth > 600 && overflows;
+  document.body.classList.toggle("compact-viewport", shouldCompact);
+}
+
+function scheduleViewportMode() {
+  if (viewportModeFrame) {
+    cancelAnimationFrame(viewportModeFrame);
+  }
+  viewportModeFrame = requestAnimationFrame(updateViewportMode);
 }
 
 function renderDealer() {
@@ -449,5 +472,6 @@ document.addEventListener("DOMContentLoaded", function () {
   game.shoe = shuffle(buildShoe(NUM_DECKS));
   // Initialize cut card position
   game.cutCardPosition = 60 + Math.floor(Math.random() * 30);
+  window.addEventListener("resize", scheduleViewportMode);
   render();
 });
