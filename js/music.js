@@ -124,6 +124,17 @@ var Music = (function () {
     document.addEventListener("keydown", onGesture);
   }
 
+  function handleVisibility() {
+    if (!audio) {
+      return;
+    }
+    if (document.hidden) {
+      audio.pause();
+    } else if (!muted) {
+      tryPlay();
+    }
+  }
+
   function init() {
     resolveSource().then(function (url) {
       audio = new Audio();
@@ -134,6 +145,7 @@ var Music = (function () {
       tryPlay(); // works if autoplay is permitted
       armStart(); // otherwise start on first interaction
     });
+    document.addEventListener("visibilitychange", handleVisibility);
   }
 
   function toggleMute() {
