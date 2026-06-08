@@ -521,22 +521,7 @@ body::after {
   transition: transform 0.15s;
 }
 /* Denomination overlaid on a blank chip (for values without a baked-in image) */
-.chip-custom {
-  position: relative;
-}
-.chip-denom {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: #ffffff;
-  font-size: clamp(12px, 30%, 18px);
-  letter-spacing: 0.5px;
-  pointer-events: none;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
-}
+
 .chip img {
   width: clamp(52px, 14vw, 68px);
   height: clamp(52px, 14vw, 68px);
