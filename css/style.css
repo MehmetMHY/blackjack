@@ -820,8 +820,18 @@ body::after {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 600px) {
+  /* Pack the table from the top instead of spreading zones to the bottom edge,
+     so the controls sit higher and stay within comfortable thumb reach. */
+  .table {
+    justify-content: flex-start;
+    gap: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
   .player-area {
     gap: 14px;
+  }
+  .controls {
+    gap: 10px;
   }
   .btn {
     padding: 11px 18px;
