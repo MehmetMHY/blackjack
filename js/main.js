@@ -11,6 +11,7 @@ var seen = {}; // card uid -> has been rendered at least once
 var revealed = {}; // card uid -> has been shown face up at least once
 var cardSoundCount = 0; // staggers deal sounds within a single render pass
 var viewportModeFrame = null;
+var warmedAssets = [];
 
 var dom = {};
 
@@ -23,6 +24,59 @@ function playSound(name, delay) {
 function resetRenderState() {
   seen = {};
   revealed = {};
+}
+
+function assetPaths() {
+  var paths = [
+    "index.html",
+    "site.webmanifest",
+    "css/keyframes.css",
+    "css/style.css",
+    "js/sounds.js",
+    "js/music.js",
+    "js/cards.js",
+    "js/game-play-logic.js",
+    "js/game-win-logic.js",
+    "js/button-actions.js",
+    "js/main.js",
+    "assets/card_back.png",
+    "assets/10-chip.png",
+    "assets/25-chip.png",
+    "assets/50-chip.png",
+    "assets/100-chip.png",
+    "assets/1k-chip.png",
+    "assets/music.mp3",
+    "assets/thumbnail.png",
+    "assets/android-chrome-512x512.png",
+    "assets/android-chrome-192x192.png",
+    "assets/apple-touch-icon.png",
+    "assets/favicon-32x32.png",
+    "assets/favicon-16x16.png",
+    "assets/favicon.ico",
+  ];
+
+  buildShoe(1).forEach(function (card) {
+    paths.push("assets/" + card.src);
+  });
+
+  return paths;
+}
+
+function warmAssetCache() {
+  var paths = assetPaths();
+
+  paths.forEach(function (path) {
+    if (typeof fetch === "function" && window.location.protocol !== "file:") {
+      fetch(path, { cache: "reload" }).catch(function () {});
+    }
+
+    if (/\.(png|ico)$/i.test(path)) {
+      var img = new Image();
+      img.decoding = "async";
+      img.src = path;
+      warmedAssets.push(img);
+    }
+  });
 }
 
 function saveBankroll() {
@@ -220,13 +274,14 @@ function renderHud() {
 
 function renderControls() {
   var betting = game.phase === "betting";
-  var playerTurn =
-    game.phase === "player" &&
-    !game.awaitingInsurance &&
-    !game.awaitingEvenMoney;
+  var playerTurn = game.phase === "player";
+  var pendingOffer = !!game.awaitingInsurance || !!game.awaitingEvenMoney;
 
   // Chips stay on the table at all times; only enabled when a bet can be placed.
-  dom.chipTray.classList.toggle("disabled", !(betting && game.bankroll > 0));
+  dom.chipTray.classList.toggle(
+    "disabled",
+    pendingOffer || !(betting && game.bankroll > 0),
+  );
 
   var broke = betting && game.bankroll <= 0 && game.bet <= 0;
   var showBet =
@@ -234,9 +289,13 @@ function renderControls() {
 
   dom.betControls.classList.toggle("active", showBet);
   dom.actionControls.classList.toggle("active", playerTurn);
-  dom.insuranceControls.classList.toggle("active", !!game.awaitingInsurance);
-  dom.evenMoneyControls.classList.toggle("active", !!game.awaitingEvenMoney);
   dom.resetControls.classList.toggle("active", broke);
+  dom.offerBanner.classList.toggle("show", pendingOffer);
+  dom.insuranceOfferActions.classList.toggle("active", !!game.awaitingInsurance);
+  dom.evenMoneyOfferActions.classList.toggle(
+    "active",
+    !!game.awaitingEvenMoney,
+  );
 
   if (betting) {
     dom.dealButton.disabled = game.bet <= 0 || game.bet > game.bankroll;
@@ -248,15 +307,60 @@ function renderControls() {
     var canAct = !!h && h.status === "playing";
     dom.hitButton.disabled = !canAct;
     dom.standButton.disabled = !canAct;
-    dom.doubleButton.disabled = !canDouble(h);
-    dom.splitButton.disabled = !canSplit(h);
-    dom.surrenderButton.disabled = !canSurrender(h);
+    dom.doubleButton.disabled = pendingOffer
+      ? !canDoubleAfterOffer(h)
+      : !canDouble(h);
+    dom.splitButton.disabled = pendingOffer
+      ? !canSplitAfterOffer(h)
+      : !canSplit(h);
+    dom.surrenderButton.disabled = pendingOffer
+      ? !canSurrenderAfterOffer(h)
+      : !canSurrender(h);
   }
 
   if (game.awaitingInsurance) {
     // Insurance is exactly half the bet (e.g. $12.50 on a $25 bet).
-    dom.insuranceCost.textContent = "$" + game.lastBet / 2;
+    dom.offerText.textContent = "Insurance available: $" + game.lastBet / 2;
+  } else if (game.awaitingEvenMoney) {
+    dom.offerText.textContent = "Blackjack vs Ace: take even money?";
+  } else {
+    dom.offerText.textContent = "";
   }
+}
+
+function canDoubleAfterOffer(h) {
+  return (
+    !!h &&
+    game.phase === "player" &&
+    h.status === "playing" &&
+    h.cards.length === 2 &&
+    game.bankroll >= h.bet &&
+    !h.splitAces
+  );
+}
+
+function canSplitAfterOffer(h) {
+  return (
+    !!h &&
+    game.phase === "player" &&
+    h.status === "playing" &&
+    h.cards.length === 2 &&
+    h.cards[0].value === h.cards[1].value &&
+    game.hands.length < MAX_HANDS &&
+    game.bankroll >= h.bet &&
+    !h.splitAces
+  );
+}
+
+function canSurrenderAfterOffer(h) {
+  return (
+    !!h &&
+    game.phase === "player" &&
+    h.status === "playing" &&
+    h.cards.length === 2 &&
+    !h.fromSplit &&
+    game.hands.length === 1
+  );
 }
 
 // --- Toast ------------------------------------------------------------------
@@ -285,9 +389,12 @@ function cacheDom() {
   dom.chipTray = document.getElementById("chip-tray");
   dom.betControls = document.getElementById("bet-controls");
   dom.actionControls = document.getElementById("action-controls");
-  dom.insuranceControls = document.getElementById("insurance-controls");
-  dom.insuranceCost = document.getElementById("insurance-cost");
-  dom.evenMoneyControls = document.getElementById("even-money-controls");
+  dom.offerBanner = document.getElementById("offer-banner");
+  dom.offerText = document.getElementById("offer-text");
+  dom.insuranceOfferActions = document.getElementById("insurance-offer-actions");
+  dom.evenMoneyOfferActions = document.getElementById(
+    "even-money-offer-actions",
+  );
   dom.resetControls = document.getElementById("reset-controls");
   dom.toast = document.getElementById("toast");
 
@@ -469,6 +576,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadBankroll();
   loadBankruptcies();
   loadAlignment();
+  warmAssetCache();
   game.shoe = shuffle(buildShoe(NUM_DECKS));
   // Initialize cut card position
   game.cutCardPosition = 60 + Math.floor(Math.random() * 30);

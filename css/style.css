@@ -418,6 +418,59 @@ body::after {
   transform: translateY(0);
 }
 
+/* ---------- Non-blocking offer banner ---------- */
+.offer-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: clamp(52px, 14vw, 68px);
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 196, 81, 0.55);
+  border-radius: 999px;
+  background: rgba(10, 22, 15, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.18s,
+    transform 0.18s,
+    visibility 0.18s;
+  pointer-events: none;
+}
+
+.offer-banner.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.offer-text {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--gold);
+  text-align: center;
+}
+
+.offer-actions {
+  display: none;
+  gap: 8px;
+}
+
+.offer-actions.active {
+  display: flex;
+}
+
+.offer-banner .btn {
+  padding: 8px 14px;
+  font-size: 0.82em;
+}
+
 /* ---------- Controls ---------- */
 .controls {
   width: 100%;
@@ -600,11 +653,6 @@ body::after {
   border-color: var(--gold);
 }
 
-.insurance-text {
-  margin: 0;
-  font-size: 0.95em;
-}
-
 /* ---------- Toast ---------- */
 .toast {
   position: fixed;
@@ -766,6 +814,10 @@ body::after {
   }
   .brand {
     display: none;
+  }
+  .offer-banner {
+    flex-wrap: wrap;
+    border-radius: 18px;
   }
 }
 

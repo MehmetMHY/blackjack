@@ -2,6 +2,7 @@
 //
 // Phases:
 //   "betting" -> player builds a wager and presses Deal
+//   "dealing" -> opening cards are being dealt / dealer peek is pending
 //   "player"  -> player acts on each hand (hit/stand/double/split)
 //   "dealer"  -> dealer reveals the hole card and draws (hits soft 17)
 //   "settle"  -> outcomes resolved, payouts applied (transitions back to betting)
@@ -106,7 +107,7 @@ function startRound() {
   game.awaitingInsurance = false;
   game.awaitingEvenMoney = false;
   game.message = "";
-  game.phase = "player";
+  game.phase = "dealing";
 
   resetRenderState();
 
@@ -131,11 +132,13 @@ function afterDeal() {
     // "even money" (a guaranteed 1:1 payout) instead of the insurance prompt.
     // It is mathematically identical to insuring a blackjack for the full bet.
     if (isBlackjack(game.hands[0].cards)) {
+      game.phase = "player";
       game.awaitingEvenMoney = true;
       render();
       return;
     }
     // Otherwise offer insurance first
+    game.phase = "player";
     game.awaitingInsurance = true;
     render();
     return;
@@ -156,6 +159,11 @@ function afterDeal() {
 }
 
 function resolveInsurance(takeInsurance) {
+  // Guard against stale clicks: once the offer is gone (e.g. the player already
+  // acted and the dealer is drawing), ignore any further insurance input.
+  if (!game.awaitingInsurance) {
+    return;
+  }
   game.awaitingInsurance = false;
 
   if (takeInsurance) {
@@ -181,6 +189,10 @@ function resolveInsurance(takeInsurance) {
 
 // Player holds a natural against a dealer Ace and is offered even money.
 function resolveEvenMoney(takeEvenMoney) {
+  // Guard against stale clicks: once the offer is gone, ignore further input.
+  if (!game.awaitingEvenMoney) {
+    return;
+  }
   game.awaitingEvenMoney = false;
 
   if (takeEvenMoney) {
@@ -216,8 +228,34 @@ function proceedAfterPeek() {
 
 // --- Player actions ---------------------------------------------------------
 
+function continueAfterDecliningOffer(action) {
+  if (game.awaitingInsurance) {
+    resolveInsurance(false);
+  } else if (game.awaitingEvenMoney) {
+    resolveEvenMoney(false);
+  } else {
+    return false;
+  }
+
+  if (
+    game.phase === "player" &&
+    !game.awaitingInsurance &&
+    !game.awaitingEvenMoney
+  ) {
+    action();
+  }
+  return true;
+}
+
 function hit() {
-  if (game.phase !== "player" || game.awaitingInsurance) {
+  if (continueAfterDecliningOffer(hit)) {
+    return;
+  }
+  if (
+    game.phase !== "player" ||
+    game.awaitingInsurance ||
+    game.awaitingEvenMoney
+  ) {
     return;
   }
   var h = currentHand();
@@ -239,7 +277,14 @@ function hit() {
 }
 
 function stand() {
-  if (game.phase !== "player" || game.awaitingInsurance) {
+  if (continueAfterDecliningOffer(stand)) {
+    return;
+  }
+  if (
+    game.phase !== "player" ||
+    game.awaitingInsurance ||
+    game.awaitingEvenMoney
+  ) {
     return;
   }
   var h = currentHand();
@@ -267,6 +312,9 @@ function canSurrender(h) {
 }
 
 function surrender() {
+  if (continueAfterDecliningOffer(surrender)) {
+    return;
+  }
   var h = currentHand();
   if (!canSurrender(h)) {
     return;
@@ -286,6 +334,7 @@ function canDouble(h) {
     !!h &&
     game.phase === "player" &&
     !game.awaitingInsurance &&
+    !game.awaitingEvenMoney &&
     h.status === "playing" &&
     h.cards.length === 2 &&
     game.bankroll >= h.bet &&
@@ -294,6 +343,9 @@ function canDouble(h) {
 }
 
 function double() {
+  if (continueAfterDecliningOffer(double)) {
+    return;
+  }
   var h = currentHand();
   if (!canDouble(h)) {
     return;
@@ -313,6 +365,7 @@ function canSplit(h) {
     !!h &&
     game.phase === "player" &&
     !game.awaitingInsurance &&
+    !game.awaitingEvenMoney &&
     h.status === "playing" &&
     h.cards.length === 2 &&
     h.cards[0].value === h.cards[1].value &&
@@ -323,6 +376,9 @@ function canSplit(h) {
 }
 
 function split() {
+  if (continueAfterDecliningOffer(split)) {
+    return;
+  }
   var h = currentHand();
   if (!canSplit(h)) {
     return;

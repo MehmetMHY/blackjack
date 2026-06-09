@@ -138,6 +138,20 @@
           </button>
         </div>
 
+        <div id="offer-banner" class="offer-banner" aria-live="polite">
+          <span id="offer-text" class="offer-text"></span>
+          <span id="insurance-offer-actions" class="offer-actions">
+            <button id="insurance-yes" class="btn btn-primary">Insure</button>
+            <button id="insurance-no" class="btn btn-ghost">No</button>
+          </span>
+          <span id="even-money-offer-actions" class="offer-actions">
+            <button id="even-money-yes" class="btn btn-primary">
+              Even Money
+            </button>
+            <button id="even-money-no" class="btn btn-ghost">No</button>
+          </span>
+        </div>
+
         <!-- Phase controls swap in here. The slot always reserves the action-row
              height, even when every group inside is hidden (the dealer's turn
              and settling), so the rows above and below never shift up or down. -->
@@ -166,32 +180,6 @@
                 <button id="hit-button" class="btn btn-action">Hit</button>
                 <button id="stand-button" class="btn btn-action">Stand</button>
               </div>
-            </div>
-          </div>
-
-          <!-- Insurance -->
-          <div id="insurance-controls" class="control-group">
-            <p class="insurance-text">
-              Dealer shows an Ace. Insurance? (<span id="insurance-cost"
-                >$0</span
-              >)
-            </p>
-            <div class="button-row">
-              <button id="insurance-yes" class="btn btn-primary">Insure</button>
-              <button id="insurance-no" class="btn btn-ghost">No</button>
-            </div>
-          </div>
-
-          <!-- Even money (player blackjack vs dealer Ace) -->
-          <div id="even-money-controls" class="control-group">
-            <p class="insurance-text">
-              Blackjack vs an Ace. Take even money? (guaranteed 1:1)
-            </p>
-            <div class="button-row">
-              <button id="even-money-yes" class="btn btn-primary">
-                Even Money
-              </button>
-              <button id="even-money-no" class="btn btn-ghost">No</button>
             </div>
           </div>
 

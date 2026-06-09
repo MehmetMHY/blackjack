@@ -119,6 +119,9 @@ function buildOutcomeMessage(dealerBJ) {
           return "Bust — dealer wins";
         }
         if (dealerBJ) {
+          if (game.insuranceBet > 0) {
+            return "Dealer blackjack — insurance paid";
+          }
           return "Dealer blackjack — you lose";
         }
         return "Dealer wins";
