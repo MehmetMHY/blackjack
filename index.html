@@ -119,37 +119,39 @@
           </div>
         </div>
 
-        <!-- Chip tray is always visible; it greys out while a hand is in play -->
-        <div id="chip-tray" class="chip-tray">
-          <button type="button" class="chip" data-amount="10">
-            <img src="assets/10-chip.png" alt="10" draggable="false" />
-          </button>
-          <button type="button" class="chip" data-amount="25">
-            <img src="assets/25-chip.png" alt="25" draggable="false" />
-          </button>
-          <button type="button" class="chip" data-amount="50">
-            <img src="assets/50-chip.png" alt="50" draggable="false" />
-          </button>
-          <button type="button" class="chip" data-amount="100">
-            <img src="assets/100-chip.png" alt="100" draggable="false" />
-          </button>
-          <button type="button" class="chip" data-amount="1000">
-            <img src="assets/1k-chip.png" alt="1000" draggable="false" />
-          </button>
-        </div>
-
-        <div id="offer-banner" class="offer-banner" aria-live="polite">
-          <span id="offer-text" class="offer-text"></span>
-          <span id="insurance-offer-actions" class="offer-actions">
-            <button id="insurance-yes" class="btn btn-primary">Insure</button>
-            <button id="insurance-no" class="btn btn-ghost">No</button>
-          </span>
-          <span id="even-money-offer-actions" class="offer-actions">
-            <button id="even-money-yes" class="btn btn-primary">
-              Even Money
+        <div class="chip-area">
+          <!-- Chip tray is always visible; it greys out while a hand is in play -->
+          <div id="chip-tray" class="chip-tray">
+            <button type="button" class="chip" data-amount="10">
+              <img src="assets/10-chip.png" alt="10" draggable="false" />
             </button>
-            <button id="even-money-no" class="btn btn-ghost">No</button>
-          </span>
+            <button type="button" class="chip" data-amount="25">
+              <img src="assets/25-chip.png" alt="25" draggable="false" />
+            </button>
+            <button type="button" class="chip" data-amount="50">
+              <img src="assets/50-chip.png" alt="50" draggable="false" />
+            </button>
+            <button type="button" class="chip" data-amount="100">
+              <img src="assets/100-chip.png" alt="100" draggable="false" />
+            </button>
+            <button type="button" class="chip" data-amount="1000">
+              <img src="assets/1k-chip.png" alt="1000" draggable="false" />
+            </button>
+          </div>
+
+          <div id="offer-banner" class="offer-banner" aria-live="polite">
+            <span id="offer-text" class="offer-text"></span>
+            <span id="insurance-offer-actions" class="offer-actions">
+              <button id="insurance-yes" class="btn btn-primary">Insure</button>
+              <button id="insurance-no" class="btn btn-ghost">No</button>
+            </span>
+            <span id="even-money-offer-actions" class="offer-actions">
+              <button id="even-money-yes" class="btn btn-primary">
+                Even Money
+              </button>
+              <button id="even-money-no" class="btn btn-ghost">No</button>
+            </span>
+          </div>
         </div>
 
         <!-- Phase controls swap in here. The slot always reserves the action-row
