@@ -101,6 +101,109 @@ function loadBankruptcies() {
   game.bankruptcies = isNaN(n) ? 0 : n;
 }
 
+function clearVisibleCookies() {
+  document.cookie.split(";").forEach(function (cookie) {
+    var name = cookie.split("=")[0].trim();
+    if (!name) {
+      return;
+    }
+
+    var expires = "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=";
+    document.cookie = name + expires + "/";
+
+    var parts = window.location.pathname.split("/");
+    var path = "";
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) {
+        continue;
+      }
+      path += "/" + parts[i];
+      document.cookie = name + expires + path;
+    }
+  });
+}
+
+function clearBlackjackLocalStorage() {
+  var keys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key && key.indexOf("blackjack") === 0) {
+      keys.push(key);
+    }
+  }
+  keys.forEach(function (key) {
+    localStorage.removeItem(key);
+  });
+
+  try {
+    sessionStorage.clear();
+  } catch (e) {}
+}
+
+function clearBlackjackCaches() {
+  if (!window.caches || !caches.keys) {
+    return Promise.resolve();
+  }
+  return caches.keys().then(function (keys) {
+    return Promise.all(
+      keys
+        .filter(function (key) {
+          return key.indexOf("blackjack") !== -1;
+        })
+        .map(function (key) {
+          return caches.delete(key);
+        }),
+    );
+  });
+}
+
+function clearBlackjackIndexedDb() {
+  if (!window.indexedDB || !indexedDB.deleteDatabase) {
+    return Promise.resolve();
+  }
+  return new Promise(function (resolve) {
+    var req = indexedDB.deleteDatabase("blackjack-audio");
+    req.onsuccess = resolve;
+    req.onerror = resolve;
+    req.onblocked = resolve;
+  });
+}
+
+function reloadFresh() {
+  var url = new URL(window.location.href);
+  url.searchParams.set("restart", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
+function fullRestart() {
+  var ok = window.confirm(
+    "Full Restart will clear your balance, bust count, settings, cookies, and Blackjack caches, then reload the game. Continue?",
+  );
+  if (!ok) {
+    return;
+  }
+
+  try {
+    clearBlackjackLocalStorage();
+    clearVisibleCookies();
+  } catch (e) {}
+
+  game.bankroll = STARTING_BANKROLL;
+  game.bankruptcies = 0;
+  game.bet = 0;
+  game.lastBet = 0;
+  game.insuranceBet = 0;
+  game.awaitingInsurance = false;
+  game.awaitingEvenMoney = false;
+  game.phase = "betting";
+  game.message = "";
+
+  Promise.all([clearBlackjackCaches(), clearBlackjackIndexedDb()]).then(
+    reloadFresh,
+    reloadFresh,
+  );
+}
+
 // --- Card elements ----------------------------------------------------------
 
 function cardEl(card, faceDown) {
@@ -291,7 +394,10 @@ function renderControls() {
   dom.actionControls.classList.toggle("active", playerTurn);
   dom.resetControls.classList.toggle("active", broke);
   dom.offerBanner.classList.toggle("show", pendingOffer);
-  dom.insuranceOfferActions.classList.toggle("active", !!game.awaitingInsurance);
+  dom.insuranceOfferActions.classList.toggle(
+    "active",
+    !!game.awaitingInsurance,
+  );
   dom.evenMoneyOfferActions.classList.toggle(
     "active",
     !!game.awaitingEvenMoney,
@@ -391,7 +497,9 @@ function cacheDom() {
   dom.actionControls = document.getElementById("action-controls");
   dom.offerBanner = document.getElementById("offer-banner");
   dom.offerText = document.getElementById("offer-text");
-  dom.insuranceOfferActions = document.getElementById("insurance-offer-actions");
+  dom.insuranceOfferActions = document.getElementById(
+    "insurance-offer-actions",
+  );
   dom.evenMoneyOfferActions = document.getElementById(
     "even-money-offer-actions",
   );
@@ -536,6 +644,13 @@ function wireEvents() {
     settingsModal.classList.remove("show");
     resetBankroll();
   });
+
+  document
+    .getElementById("full-restart")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      fullRestart();
+    });
 
   // Button alignment toggle
   var alignBtns = document.querySelectorAll(".align-toggle-btn");

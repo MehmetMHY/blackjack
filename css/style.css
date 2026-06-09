@@ -223,6 +223,15 @@ body::after {
 .icon-button:hover {
   background: rgba(255, 255, 255, 0.22);
 }
+.danger-button {
+  background: rgba(140, 29, 24, 0.45);
+  border: 1px solid rgba(255, 120, 110, 0.45);
+  color: #ffd6d2;
+  font-weight: 700;
+}
+.danger-button:hover {
+  background: rgba(179, 38, 30, 0.7);
+}
 
 /* ---------- Table ---------- */
 .table {
