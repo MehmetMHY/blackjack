@@ -44,9 +44,10 @@ Then visit `http://localhost:8000`.
 - `I`: take insurance
 - `E`: take even money
 - `N`: decline insurance or even money
+- During insurance or even money, normal action keys decline the offer first, then act if the hand continues
 - `Enter` / `Space`: deal while betting, stand during a hand
 - `M`: open settings
-- `Esc`: close open menus
+- `Esc`: open settings, or close open menus
 
 In Settings:
 
@@ -56,6 +57,11 @@ In Settings:
 - `H`: open help
 - Arrow keys: choose a setting
 - `Enter` / `Space`: activate selected setting, or close settings if none is selected
+
+In Help:
+
+- Arrow keys: scroll the help panel
+- `PageUp` / `PageDown`: scroll faster
 
 ## Run Engine Simulation
 

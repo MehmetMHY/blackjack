@@ -591,8 +591,14 @@ function handleKeyboard(e) {
   }
 
   if (e.key === "Escape") {
-    settingsModal.classList.remove("show");
-    rulesModal.classList.remove("show");
+    if (settingsOpen || rulesOpen) {
+      settingsModal.classList.remove("show");
+      rulesModal.classList.remove("show");
+      clearSettingsKeyboardSelection();
+      settingsKeyboardIndex = -1;
+    } else {
+      click("settings-open");
+    }
     e.preventDefault();
     return;
   }
@@ -600,6 +606,31 @@ function handleKeyboard(e) {
   var key = e.key.toLowerCase();
 
   if (rulesOpen) {
+    var rulesPanel = rulesModal.querySelector(".modal");
+
+    if (key === "arrowdown" || key === "arrowup") {
+      if (rulesPanel) {
+        rulesPanel.scrollBy({
+          top: key === "arrowdown" ? 48 : -48,
+          behavior: "smooth",
+        });
+      }
+      e.preventDefault();
+      return;
+    }
+
+    if (key === "pagedown" || key === "pageup") {
+      if (rulesPanel) {
+        var pageAmount = rulesPanel.clientHeight * 0.8;
+        rulesPanel.scrollBy({
+          top: key === "pagedown" ? pageAmount : -pageAmount,
+          behavior: "smooth",
+        });
+      }
+      e.preventDefault();
+      return;
+    }
+
     if (key === "enter" || key === " ") {
       click("rules-close");
       e.preventDefault();
