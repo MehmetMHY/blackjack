@@ -535,6 +535,206 @@ function loadAlignment() {
   applyAlignment(stored || "center");
 }
 
+var settingsKeyboardIndex = -1;
+
+function settingsKeyboardTargets() {
+  return [
+    document.getElementById("music-button"),
+    document.getElementById("mute-button"),
+    document.querySelector('.align-toggle-btn[data-align="left"]'),
+    document.querySelector('.align-toggle-btn[data-align="center"]'),
+    document.querySelector('.align-toggle-btn[data-align="right"]'),
+    document.getElementById("rules-open"),
+    document.getElementById("reset-game"),
+    document.getElementById("full-restart"),
+    document.getElementById("settings-close"),
+  ].filter(Boolean);
+}
+
+function clearSettingsKeyboardSelection() {
+  settingsKeyboardTargets().forEach(function (el) {
+    el.classList.remove("keyboard-selected");
+  });
+}
+
+function selectSettingsKeyboardTarget(idx) {
+  var targets = settingsKeyboardTargets();
+  if (!targets.length) {
+    return;
+  }
+  settingsKeyboardIndex = (idx + targets.length) % targets.length;
+  clearSettingsKeyboardSelection();
+  targets[settingsKeyboardIndex].classList.add("keyboard-selected");
+}
+
+function activateSettingsKeyboardTarget() {
+  var targets = settingsKeyboardTargets();
+  if (settingsKeyboardIndex < 0 || settingsKeyboardIndex >= targets.length) {
+    return false;
+  }
+  targets[settingsKeyboardIndex].click();
+  return true;
+}
+
+function handleKeyboard(e) {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) {
+    return;
+  }
+
+  var settingsModal = document.getElementById("settings-modal");
+  var rulesModal = document.getElementById("rules-modal");
+  var settingsOpen = settingsModal.classList.contains("show");
+  var rulesOpen = rulesModal.classList.contains("show");
+
+  function click(id) {
+    document.getElementById(id).click();
+  }
+
+  if (e.key === "Escape") {
+    settingsModal.classList.remove("show");
+    rulesModal.classList.remove("show");
+    e.preventDefault();
+    return;
+  }
+
+  var key = e.key.toLowerCase();
+
+  if (rulesOpen) {
+    if (key === "enter" || key === " ") {
+      click("rules-close");
+      e.preventDefault();
+    }
+    return;
+  }
+
+  if (settingsOpen) {
+    switch (key) {
+      case "arrowdown":
+      case "arrowright":
+        selectSettingsKeyboardTarget(settingsKeyboardIndex + 1);
+        break;
+      case "arrowup":
+      case "arrowleft":
+        if (settingsKeyboardIndex < 0) {
+          selectSettingsKeyboardTarget(settingsKeyboardTargets().length - 1);
+        } else {
+          selectSettingsKeyboardTarget(settingsKeyboardIndex - 1);
+        }
+        break;
+      case "m":
+        click("music-button");
+        break;
+      case "s":
+        click("mute-button");
+        break;
+      case "l":
+        document.querySelector('.align-toggle-btn[data-align="left"]').click();
+        break;
+      case "c":
+        document
+          .querySelector('.align-toggle-btn[data-align="center"]')
+          .click();
+        break;
+      case "r":
+        document.querySelector('.align-toggle-btn[data-align="right"]').click();
+        break;
+      case "h":
+      case "?":
+        click("rules-open");
+        break;
+      case "enter":
+      case " ":
+        if (!activateSettingsKeyboardTarget()) {
+          click("settings-close");
+        }
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    return;
+  }
+
+  var handled = true;
+
+  switch (key) {
+    case "m":
+      click("settings-open");
+      break;
+    case "1":
+      addChip(10);
+      break;
+    case "2":
+      addChip(25);
+      break;
+    case "3":
+      addChip(50);
+      break;
+    case "4":
+      addChip(100);
+      break;
+    case "5":
+      addChip(1000);
+      break;
+    case "c":
+      clearBet();
+      break;
+    case "d":
+      if (game.phase === "betting") {
+        dealPressed();
+      } else {
+        double();
+      }
+      break;
+    case "h":
+    case "f":
+      hit();
+      break;
+    case "s":
+      stand();
+      break;
+    case "p":
+      split();
+      break;
+    case "r":
+      if (game.phase === "betting" && game.bankroll <= 0 && game.bet <= 0) {
+        resetBankroll();
+      } else {
+        surrender();
+      }
+      break;
+    case "i":
+      resolveInsurance(true);
+      break;
+    case "e":
+      resolveEvenMoney(true);
+      break;
+    case "n":
+      if (game.awaitingInsurance) {
+        resolveInsurance(false);
+      } else if (game.awaitingEvenMoney) {
+        resolveEvenMoney(false);
+      } else {
+        handled = false;
+      }
+      break;
+    case " ":
+    case "enter":
+      if (game.phase === "betting") {
+        dealPressed();
+      } else {
+        stand();
+      }
+      break;
+    default:
+      handled = false;
+  }
+
+  if (handled) {
+    e.preventDefault();
+  }
+}
+
 function wireEvents() {
   var chips = document.querySelectorAll(".chip[data-amount]");
   for (var i = 0; i < chips.length; i++) {
@@ -552,6 +752,7 @@ function wireEvents() {
   dom.doubleButton.addEventListener("click", double);
   dom.splitButton.addEventListener("click", split);
   dom.surrenderButton.addEventListener("click", surrender);
+  document.addEventListener("keydown", handleKeyboard);
 
   document
     .getElementById("insurance-yes")
@@ -591,6 +792,8 @@ function wireEvents() {
   var settingsModal = document.getElementById("settings-modal");
   document.getElementById("settings-icon").innerHTML = SVG_SETTINGS;
   function openSettings() {
+    clearSettingsKeyboardSelection();
+    settingsKeyboardIndex = -1;
     updateMuteIcon();
     updateMusicIcon();
     settingsModal.classList.add("show");
@@ -603,10 +806,14 @@ function wireEvents() {
     .getElementById("settings-close")
     .addEventListener("click", function () {
       settingsModal.classList.remove("show");
+      clearSettingsKeyboardSelection();
+      settingsKeyboardIndex = -1;
     });
   settingsModal.addEventListener("click", function (e) {
     if (e.target === settingsModal) {
       settingsModal.classList.remove("show");
+      clearSettingsKeyboardSelection();
+      settingsKeyboardIndex = -1;
     }
   });
 

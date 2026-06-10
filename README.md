@@ -32,6 +32,31 @@ python3 -m http.server
 
 Then visit `http://localhost:8000`.
 
+## Keyboard Controls
+
+- `1`-`5`: add chips ($10, $25, $50, $100, $1000)
+- `C`: clear bet
+- `D`: deal while betting, double during a hand
+- `H` / `F`: hit
+- `S`: stand
+- `P`: split
+- `R`: surrender, or reset when broke
+- `I`: take insurance
+- `E`: take even money
+- `N`: decline insurance or even money
+- `Enter` / `Space`: deal while betting, stand during a hand
+- `M`: open settings
+- `Esc`: close open menus
+
+In Settings:
+
+- `M`: toggle music
+- `S`: toggle sound effects
+- `L` / `C` / `R`: set button alignment left, center, or right
+- `H`: open help
+- Arrow keys: choose a setting
+- `Enter` / `Space`: activate selected setting, or close settings if none is selected
+
 ## Run Engine Simulation
 
 ```bash
