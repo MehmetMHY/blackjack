@@ -768,20 +768,17 @@ function handleKeyboard(e) {
 
 function wireEvents() {
   var chips = document.querySelectorAll(".chip[data-amount]");
-  var chipRepeatDelay = 350;
-  var chipRepeatRate = 90;
+  var chipRepeatDelay = 600;
+  var chipRepeatRate = 120;
   var chipRepeatTimer = null;
   var chipRepeatInterval = null;
-  var suppressNextChipClick = false;
+  var lastPointerChipAdd = 0;
 
   function stopChipRepeat() {
     clearTimeout(chipRepeatTimer);
     clearInterval(chipRepeatInterval);
     chipRepeatTimer = null;
     chipRepeatInterval = null;
-    setTimeout(function () {
-      suppressNextChipClick = false;
-    }, 0);
   }
 
   for (var i = 0; i < chips.length; i++) {
@@ -793,7 +790,7 @@ function wireEvents() {
           return;
         }
         e.preventDefault();
-        suppressNextChipClick = true;
+        lastPointerChipAdd = Date.now();
         addChip(amount);
 
         if (chip.setPointerCapture && e.pointerId !== undefined) {
@@ -820,7 +817,7 @@ function wireEvents() {
       });
 
       chip.addEventListener("click", function () {
-        if (suppressNextChipClick) {
+        if (Date.now() - lastPointerChipAdd < 700) {
           return;
         }
         addChip(amount);
