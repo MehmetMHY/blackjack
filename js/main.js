@@ -768,10 +768,62 @@ function handleKeyboard(e) {
 
 function wireEvents() {
   var chips = document.querySelectorAll(".chip[data-amount]");
+  var chipRepeatDelay = 350;
+  var chipRepeatRate = 90;
+  var chipRepeatTimer = null;
+  var chipRepeatInterval = null;
+  var suppressNextChipClick = false;
+
+  function stopChipRepeat() {
+    clearTimeout(chipRepeatTimer);
+    clearInterval(chipRepeatInterval);
+    chipRepeatTimer = null;
+    chipRepeatInterval = null;
+    setTimeout(function () {
+      suppressNextChipClick = false;
+    }, 0);
+  }
+
   for (var i = 0; i < chips.length; i++) {
     (function (chip) {
+      var amount = parseInt(chip.dataset.amount, 10);
+
+      chip.addEventListener("pointerdown", function (e) {
+        if (e.button !== undefined && e.button !== 0) {
+          return;
+        }
+        e.preventDefault();
+        suppressNextChipClick = true;
+        addChip(amount);
+
+        if (chip.setPointerCapture && e.pointerId !== undefined) {
+          try {
+            chip.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+
+        clearTimeout(chipRepeatTimer);
+        clearInterval(chipRepeatInterval);
+        chipRepeatTimer = setTimeout(function () {
+          chipRepeatInterval = setInterval(function () {
+            addChip(amount);
+          }, chipRepeatRate);
+        }, chipRepeatDelay);
+      });
+
+      chip.addEventListener("pointerup", stopChipRepeat);
+      chip.addEventListener("pointercancel", stopChipRepeat);
+      chip.addEventListener("pointerleave", stopChipRepeat);
+      chip.addEventListener("lostpointercapture", stopChipRepeat);
+      chip.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+      });
+
       chip.addEventListener("click", function () {
-        addChip(parseInt(chip.dataset.amount, 10));
+        if (suppressNextChipClick) {
+          return;
+        }
+        addChip(amount);
       });
     })(chips[i]);
   }
