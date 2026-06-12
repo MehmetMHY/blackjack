@@ -867,6 +867,9 @@ body::after {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 600px) {
+  body {
+    background-attachment: scroll;
+  }
   /* Pack the table from the top instead of spreading zones to the bottom edge,
      so the controls sit higher and stay within comfortable thumb reach. */
   .table {
@@ -879,6 +882,9 @@ body::after {
   }
   .controls {
     gap: 10px;
+  }
+  .chip-tray.disabled {
+    filter: none;
   }
   .btn {
     padding: 11px 18px;

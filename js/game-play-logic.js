@@ -10,7 +10,7 @@
 // Rendering is reactive: engine mutations call render() (defined in main.js),
 // which rebuilds the board from `game`.
 
-var STARTING_BANKROLL = 2000;
+var STARTING_BANKROLL = 1000;
 var NUM_DECKS = 6;
 var MAX_HANDS = 4; // a pair can be split up to this many hands
 var BURN_CARDS = 1; // number of cards to burn after shuffle
