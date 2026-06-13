@@ -53,6 +53,7 @@ function assetPaths() {
     "assets/favicon-32x32.png",
     "assets/favicon-16x16.png",
     "assets/favicon.ico",
+    "assets/github.svg",
   ];
 
   buildShoe(1).forEach(function (card) {
@@ -545,6 +546,7 @@ function settingsKeyboardTargets() {
     document.querySelector('.align-toggle-btn[data-align="center"]'),
     document.querySelector('.align-toggle-btn[data-align="right"]'),
     document.getElementById("rules-open"),
+    document.getElementById("github-link"),
     document.getElementById("reset-game"),
     document.getElementById("full-restart"),
     document.getElementById("settings-close"),

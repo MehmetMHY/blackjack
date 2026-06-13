@@ -14,11 +14,12 @@ A browser-based [Blackjack](https://en.wikipedia.org/wiki/Blackjack) game built 
 - Non-blocking insurance and even money prompts that keep the main action buttons stable
 - Natural blackjack pays 3:2, wins pay 1:1, pushes return your bet
 - 6-deck shoe (H17, DAS, late surrender, no resplitting aces) with realistic ~75% penetration and automatic reshuffle
-- Chip betting tray ($10, $25, $50, $100, $1000)
+- Chip betting tray ($10, $25, $50, $100, $1000) with hold-to-repeat betting
 - Synthesized sound effects via the Web Audio API, with a mute toggle
 - Looping background music with its own independent mute toggle, cached in IndexedDB so the track downloads only once
 - Persistent balance, bust count, and sound/music preferences saved across sessions via localStorage
 - Visit-time asset cache warming to reduce card and chip loading flashes while still revalidating on reload
+- Settings menu with help, audio controls, button alignment, full restart, and source-code link
 - Full Restart setting to clear saved Blackjack data, app caches, cookies, and reload fresh
 - Responsive layout, card deal and flip animations
 

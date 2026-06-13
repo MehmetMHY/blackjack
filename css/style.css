@@ -225,6 +225,12 @@ body::after {
 .icon-button:hover {
   background: rgba(255, 255, 255, 0.22);
 }
+.icon-button img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  filter: invert(1);
+}
 .danger-button {
   background: rgba(140, 29, 24, 0.45);
   border: 1px solid rgba(255, 120, 110, 0.45);
@@ -493,6 +499,9 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .chip-area {
@@ -642,6 +651,11 @@ body::after {
   border-radius: 999px;
   cursor: pointer;
   color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition:
     transform 0.12s,
     filter 0.2s,
