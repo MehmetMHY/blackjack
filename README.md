@@ -41,10 +41,12 @@ Then visit `http://localhost:8000`.
 - `H` / `F`: hit
 - `S`: stand
 - `P`: split
-- `R`: surrender, or reset when broke
+- `r`: accept `Get $1000` when you are out of chips
+- `Shift+R`: reset game to the starting bankroll and add one bust
+- `Y`: accept the visible insurance or even money offer
+- `N`: decline the visible insurance or even money offer
 - `I`: take insurance
 - `E`: take even money
-- `N`: decline insurance or even money
 - During insurance or even money, normal action keys decline the offer first, then act if the hand continues
 - `Enter` / `Space`: deal while betting, stand during a hand
 - `M`: open settings
@@ -54,10 +56,12 @@ In Settings:
 
 - `M`: toggle music
 - `S`: toggle sound effects
-- `L` / `C` / `R`: set button alignment left, center, or right
+- `L` / `C`: set button alignment left or center
 - `H`: open help
 - Arrow keys: choose a setting
 - `Enter` / `Space`: activate selected setting, or close settings if none is selected
+
+Lowercase `r` is ignored unless the `Get $1000` prompt is visible. Use arrow keys and `Enter` / `Space` to activate Settings options that do not have a letter shortcut.
 
 In Help:
 

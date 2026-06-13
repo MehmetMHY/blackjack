@@ -592,6 +592,33 @@ function handleKeyboard(e) {
     document.getElementById(id).click();
   }
 
+  var key = e.key.toLowerCase();
+
+  if (e.key === "R" && e.shiftKey) {
+    settingsModal.classList.remove("show");
+    rulesModal.classList.remove("show");
+    clearSettingsKeyboardSelection();
+    settingsKeyboardIndex = -1;
+    resetBankroll(true);
+    e.preventDefault();
+    return;
+  }
+
+  if (
+    e.key === "r" &&
+    game.phase === "betting" &&
+    game.bankroll <= 0 &&
+    game.bet <= 0
+  ) {
+    settingsModal.classList.remove("show");
+    rulesModal.classList.remove("show");
+    clearSettingsKeyboardSelection();
+    settingsKeyboardIndex = -1;
+    resetBankroll(false);
+    e.preventDefault();
+    return;
+  }
+
   if (e.key === "Escape") {
     if (settingsOpen || rulesOpen) {
       settingsModal.classList.remove("show");
@@ -604,8 +631,6 @@ function handleKeyboard(e) {
     e.preventDefault();
     return;
   }
-
-  var key = e.key.toLowerCase();
 
   if (rulesOpen) {
     var rulesPanel = rulesModal.querySelector(".modal");
@@ -668,9 +693,6 @@ function handleKeyboard(e) {
           .querySelector('.align-toggle-btn[data-align="center"]')
           .click();
         break;
-      case "r":
-        document.querySelector('.align-toggle-btn[data-align="right"]').click();
-        break;
       case "h":
       case "?":
         click("rules-open");
@@ -730,17 +752,22 @@ function handleKeyboard(e) {
       split();
       break;
     case "r":
-      if (game.phase === "betting" && game.bankroll <= 0 && game.bet <= 0) {
-        resetBankroll();
-      } else {
-        surrender();
-      }
+      handled = false;
       break;
     case "i":
       resolveInsurance(true);
       break;
     case "e":
       resolveEvenMoney(true);
+      break;
+    case "y":
+      if (game.awaitingInsurance) {
+        resolveInsurance(true);
+      } else if (game.awaitingEvenMoney) {
+        resolveEvenMoney(true);
+      } else {
+        handled = false;
+      }
       break;
     case "n":
       if (game.awaitingInsurance) {
@@ -925,13 +952,15 @@ function wireEvents() {
 
   document
     .getElementById("reset-balance-button")
-    .addEventListener("click", resetBankroll);
+    .addEventListener("click", function () {
+      resetBankroll(false);
+    });
 
   // Reset game (inside settings modal — closes modal then resets)
   document.getElementById("reset-game").addEventListener("click", function (e) {
     e.preventDefault();
     settingsModal.classList.remove("show");
-    resetBankroll();
+    resetBankroll(true);
   });
 
   document

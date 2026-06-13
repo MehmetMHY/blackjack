@@ -73,6 +73,10 @@ function settleRound() {
   game.phase = "betting";
   game.awaitingInsurance = false;
   game.bet = Math.min(game.lastBet, game.bankroll);
+  if (game.bankroll <= 0 && game.bet <= 0) {
+    game.bankruptcies++;
+    saveBankruptcies();
+  }
   saveBankroll();
   render();
 }

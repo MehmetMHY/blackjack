@@ -30,9 +30,11 @@ function dealPressed() {
   startRound();
 }
 
-function resetBankroll() {
-  game.bankruptcies++;
-  saveBankruptcies();
+function resetBankroll(countBust) {
+  if (countBust) {
+    game.bankruptcies++;
+    saveBankruptcies();
+  }
   game.bankroll = STARTING_BANKROLL;
   game.bet = 0;
   game.message = "";
