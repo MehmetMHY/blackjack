@@ -288,7 +288,7 @@ body::before {
      On larger screens the viewport is tall enough that space-between creates
      huge gaps, so switch to center with a fixed gap instead. */
   justify-content: space-between;
-  padding: 18px 12px 24px;
+  padding: 18px 12px 48px;
   gap: 0;
   max-width: 560px;
   width: 100%;
@@ -535,7 +535,7 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 26px;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -600,8 +600,8 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
+  justify-content: center;
+  gap: 16px;
   min-height: 96px;
   /* Hide/show by fading — never by collapsing — so the slot height is fixed */
   visibility: hidden;
@@ -665,7 +665,7 @@ body::before {
 
 .button-row {
   display: flex;
-  gap: 10px;
+  gap: 24px;
   justify-content: center;
   flex-wrap: wrap;
   width: 100%;
@@ -923,13 +923,13 @@ body::before {
   .table {
     justify-content: flex-start;
     gap: 12px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-bottom: max(36px, env(safe-area-inset-bottom));
   }
   .player-area {
     gap: 14px;
   }
   .controls {
-    gap: 10px;
+    gap: 18px;
   }
   .chip-tray.disabled {
     filter: none;
@@ -954,7 +954,7 @@ body::before {
 /* Desktop with short screen (< 1700px tall): compact layout to avoid scrolling */
 @media (min-width: 601px) and (max-height: 1699px) {
   :root {
-    --card-w: clamp(44px, 7.5vh, 72px);
+    --card-w: clamp(52px, 8.5vh, 84px);
     --topbar-chip-h: 36px;
   }
   .topbar {
@@ -964,7 +964,7 @@ body::before {
   .table {
     justify-content: space-between;
     padding-top: 10px;
-    padding-bottom: 12px;
+    padding-bottom: 32px;
     gap: 0;
   }
   .dealer-area,
@@ -985,7 +985,7 @@ body::before {
     min-height: 30px;
   }
   .controls {
-    gap: 8px;
+    gap: 18px;
   }
   .bet-circle {
     width: 78px;
@@ -996,7 +996,7 @@ body::before {
   }
   .control-group {
     min-height: 74px;
-    gap: 8px;
+    gap: 12px;
   }
   .chip-tray {
     gap: 8px;
@@ -1043,7 +1043,7 @@ body::before {
     justify-content: center;
     gap: 18px;
     padding-top: 28px;
-    padding-bottom: 34px;
+    padding-bottom: 56px;
   }
   .dealer-area,
   .player-area {
@@ -1061,7 +1061,7 @@ body::before {
   }
   .controls {
     max-width: 720px;
-    gap: 14px;
+    gap: 28px;
   }
   .bet-circle {
     width: 108px;
@@ -1092,7 +1092,7 @@ body::before {
 /* Wide but short window (e.g. 1/4 screen on 4K): compact layout, no scrolling */
 @media (min-width: 1000px) and (max-height: 699px) {
   :root {
-    --card-w: clamp(40px, 7vh, 62px);
+    --card-w: clamp(48px, 8vh, 72px);
     --topbar-chip-h: 34px;
   }
   .topbar {
@@ -1106,7 +1106,7 @@ body::before {
     max-width: 820px;
     justify-content: space-between;
     padding-top: 8px;
-    padding-bottom: 10px;
+    padding-bottom: 24px;
     gap: 0;
   }
   .dealer-area,
@@ -1128,7 +1128,7 @@ body::before {
   }
   .controls {
     max-width: 720px;
-    gap: 6px;
+    gap: 14px;
   }
   .bet-circle {
     width: 68px;
@@ -1139,7 +1139,7 @@ body::before {
   }
   .control-group {
     min-height: 64px;
-    gap: 6px;
+    gap: 10px;
   }
   .chip-tray {
     gap: 8px;
@@ -1160,7 +1160,7 @@ body::before {
 
 /* Runtime fallback: if the rendered game overflows vertically, force compact mode. */
 body.compact-viewport {
-  --card-w: clamp(40px, 7vh, 62px);
+  --card-w: clamp(48px, 8vh, 72px);
   --topbar-chip-h: 34px;
 }
 
@@ -1177,7 +1177,7 @@ body.compact-viewport .table {
   max-width: 820px;
   justify-content: space-between;
   padding-top: 8px;
-  padding-bottom: 10px;
+  padding-bottom: 24px;
   gap: 0;
 }
 
@@ -1205,7 +1205,7 @@ body.compact-viewport .message {
 
 body.compact-viewport .controls {
   max-width: 720px;
-  gap: 6px;
+  gap: 14px;
 }
 
 body.compact-viewport .bet-circle {
@@ -1219,7 +1219,7 @@ body.compact-viewport .bet-amount {
 
 body.compact-viewport .control-group {
   min-height: 64px;
-  gap: 6px;
+  gap: 10px;
 }
 
 body.compact-viewport .chip-tray,
