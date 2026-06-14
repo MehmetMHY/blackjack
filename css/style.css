@@ -30,33 +30,70 @@ body {
   min-height: 100%;
 }
 
+/* The root element's background is what iOS paints in the rubber-band
+   overscroll region (above the top and below the bottom) in both Safari and
+   standalone "Add to Home Screen" mode. Match it to the darkest felt tone so a
+   bounce never reveals a contrasting band near the chips / bottom controls.
+   overscroll-behavior:none also tames the bounce so there is less exposed
+   region for iOS to mis-paint in the first place. */
+html {
+  background: var(--felt-dark);
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   font-family: "Poppins", sans-serif;
   color: #fff;
-  background: radial-gradient(
-      ellipse 120% 90% at 50% 18%,
-      var(--felt-light) 0%,
-      #0c5a2b 45%,
-      var(--felt-dark) 100%
-    )
-    fixed;
+  /* Base fallback colour only. The actual felt gradient and vignette are
+     painted by a single fixed layer (body::before) that lives behind all
+     content. Putting the gradient directly on the scrolling <body> with
+     `background-attachment: fixed` causes iOS Safari to mis-repaint the
+     background as the URL bar collapses, leaving the torn green band near
+     the chips. A dedicated fixed layer behind the content avoids that. */
+  background: var(--felt-dark);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
 }
 
-/* Subtle table felt texture / vignette */
-body::after {
+/* Fixed full-screen felt + vignette layer behind everything.
+   Anchored to the viewport (position: fixed) but it is a real element layer,
+   not a `background-attachment: fixed` paint, so it composites cleanly on
+   mobile and never tears when the page scrolls or the URL bar resizes.
+
+   It is deliberately oversized (inset: -200px, larger background-size) so that
+   in iOS standalone / "Add to Home Screen" mode the rubber-band overscroll
+   bounce can never drag the content past the edge of this layer and expose the
+   bare body/html colour as a torn band. The gradient is positioned at center
+   so the extra bleed stays a smooth continuation of the felt. */
+body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -200px;
+  z-index: -1;
   pointer-events: none;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 55%,
-    rgba(0, 0, 0, 0.35) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(0, 0, 0, 0.35) 100%
+    ),
+    radial-gradient(
+      ellipse 120% 90% at 50% 18%,
+      var(--felt-light) 0%,
+      #0c5a2b 45%,
+      var(--felt-dark) 100%
+    );
+  background-color: var(--felt-dark);
+  /* Promote to its own compositor layer so iOS keeps it as a static texture
+     and does not re-rasterize / tear it against the scrolling content. */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* ---------- Top bar ---------- */
@@ -881,9 +918,6 @@ body::after {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 600px) {
-  body {
-    background-attachment: scroll;
-  }
   /* Pack the table from the top instead of spreading zones to the bottom edge,
      so the controls sit higher and stay within comfortable thumb reach. */
   .table {
