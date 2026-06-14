@@ -355,7 +355,7 @@ body::before {
   flex: none; /* never shrink: extra cards overflow right rather than squeezing */
   border-radius: 8px;
   box-shadow: var(--shadow);
-  background: #fff;
+  background: transparent;
   margin-left: calc(var(--card-w) * -0.5);
   transition: transform 0.2s;
 }
