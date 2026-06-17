@@ -96,13 +96,6 @@ What it does not do: teach table etiquette, hand signals, or the feel of a live 
 - Chip icons: [thenounproject.com](https://thenounproject.com)
 - Background music: [YouTube](https://www.youtube.com/watch?v=PaFHwTjy1yE)
 
-## Tools Used
-
-- [Claude Code CLI](https://code.claude.com/docs/en/cli-reference)
-- [Gemini CLI](https://geminicli.com/)
-- [OpenCode CLI](https://opencode.ai/docs/cli/)
-- [Ch CLI](https://github.com/MehmetMHY/ch)
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
