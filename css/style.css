@@ -649,7 +649,7 @@ body::before {
 .chip img {
   width: clamp(52px, 14vw, 68px);
   height: clamp(52px, 14vw, 68px);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+  filter: none;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
