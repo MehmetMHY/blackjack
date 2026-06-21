@@ -37,7 +37,9 @@ Then visit `http://localhost:8000`.
 
 - `1`-`5`: add chips ($10, $25, $50, $100, $1000)
 - `C`: clear bet
-- `D`: deal while betting, double during a hand
+- `D`: deal while betting
+- `T`: double down
+- `X`: surrender
 - `H` / `F`: hit
 - `S`: stand
 - `P`: split
@@ -57,7 +59,7 @@ In Settings:
 - `M`: toggle music
 - `S`: toggle sound effects
 - `L` / `C`: set button alignment left or center
-- `H`: open help
+- `H` / `?`: open help
 - Arrow keys: choose a setting
 - `Enter` / `Space`: activate selected setting, or close settings if none is selected
 
@@ -67,6 +69,7 @@ In Help:
 
 - Arrow keys: scroll the help panel
 - `PageUp` / `PageDown`: scroll faster
+- `Enter` / `Space`: close help
 
 ## Run Engine Simulation
 

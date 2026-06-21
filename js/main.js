@@ -737,9 +737,13 @@ function handleKeyboard(e) {
     case "d":
       if (game.phase === "betting") {
         dealPressed();
-      } else {
-        double();
       }
+      break;
+    case "t":
+      double();
+      break;
+    case "x":
+      surrender();
       break;
     case "h":
     case "f":
